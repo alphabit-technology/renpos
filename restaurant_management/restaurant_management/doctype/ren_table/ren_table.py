@@ -78,8 +78,9 @@ class RenTable(RenBase):
 
         from erpnext.stock.get_item_details import get_pos_profile
 
-        company = frappe.defaults.get_user_default('company')
-        pos_profile = get_pos_profile(company)
+        from restaurant_management.api.guards import current_pos_profile
+        _pp = current_pos_profile()
+        pos_profile = frappe.get_cached_doc("POS Profile", _pp) if _pp else None
 
         order = frappe.new_doc("Table Order")
         order.customer = self.customer

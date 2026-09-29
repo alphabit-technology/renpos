@@ -24,11 +24,6 @@ source_link = "https://github.com/alphabit-technology/erpnext-restaurant"
     },
 } """
 
-""" app_include_css = [
-	"/assets/restaurant_management/helper/css/desk-form.css",
-  "/assets/restaurant_management/helper/css/custom.css",
-  "/assets/restaurant_management/helper/css/num-pad.css",
-] """
 
 after_migrate = "restaurant_management.setup.install.after_install"
 after_install = "restaurant_management.setup.install.after_install"
@@ -39,20 +34,6 @@ after_install = "restaurant_management.setup.install.after_install"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/{app_name}/css/{app_name}.css"
 
-""" app_include_js = [
-    '/assets/restaurant_management/js/clusterize.min.js',
-    '/assets/restaurant_management/js/interact.min.js',
-    '/assets/restaurant_management/js/drag.js',
-    '/assets/restaurant_management/js/RM.helper.js',
-    '/assets/restaurant_management/js/object-manage.js',
-
-    "/assets/restaurant_management/helper/js/jshtml-class.js",
-    "/assets/restaurant_management/helper/js/num-pad-class.js",
-    "/assets/restaurant_management/helper/js/desk-modal.js",
-    "/assets/restaurant_management/helper/js/frappe-helper-api.js",
-    "/assets/restaurant_management/helper/js/frappe-form-class.js",
-    "/assets/restaurant_management/helper/js/desk-form-class.js"
-] """
 
 # The React bundle (dist/js/restaurant.js + dist/css/index.css) is NOT
 # included globally: the restaurant-manage page loads it on demand, so the

@@ -187,7 +187,7 @@ export function DeskForm({
         // Manejar Table fields como el original
         if (copy.fieldtype === 'Table') {
           copy.get_data = () => doc[copy.fieldname] || []
-          if (data.hasOwnProperty(copy.fieldname)) {
+          if (Object.prototype.hasOwnProperty.call(data, copy.fieldname)) {
             copy.fields = data[copy.fieldname]
           }
           copy.options = null

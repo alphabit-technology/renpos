@@ -6,6 +6,9 @@ import { OrderItems } from "./orderItems/OrderItems";
 import { ItemCatalog } from "./src/ItemCatalog";
 import { OrderTabs } from "./src/OrderTabs";
 import { OrderPad } from "./src/OrderPad";
+import { PaymentPanel } from "./src/PaymentPanel";
+import { DivideDialog } from "./src/DivideDialog";
+import { TransferDialog } from "./src/TransferDialog";
 import { MobileBottomTabs } from "./src/MobileBottomTabs";
 
 import usePosData from "./usePosData";
@@ -26,6 +29,8 @@ function Order({ table, tableName, posProfile, open, onClose, title }) {
   const om = useOrderManager({ tableName, posData, onClose });
 
   const [mobileTab, setMobileTab] = useState("items");
+  const [payingOrder, setPayingOrder] = useState(null);
+  const [dialog, setDialog] = useState(null); // "divide" | "transfer" | null
 
   const qtyStore = useQtyStore();
   useEffect(() => {
@@ -108,7 +113,39 @@ function Order({ table, tableName, posProfile, open, onClose, title }) {
   });
 
   const handleDeleteOrder = useStableCallback(() => {
-    om.deleteOrder?.();
+    if (!om.currentOrderName) return;
+    frappe.confirm(
+      __("Void order {0}? Only orders with nothing sent to the kitchen can be voided.", [om.currentOrderName]),
+      () => om.deleteOrder()
+    );
+  });
+
+  // Print the pre-bill (Order Account print format) for the customer
+  const handleAccount = useStableCallback(async () => {
+    if (!om.currentOrderName) return;
+    await om.waitForSync();
+    const params = new URLSearchParams({
+      doctype: "Table Order",
+      name: om.currentOrderName,
+      format: "Order Account",
+      trigger_print: 1,
+      no_letterhead: 0,
+    });
+    window.open(`/printview?${params}`, "_blank");
+  });
+
+  const handleRefresh = useStableCallback(() => {
+    om.loadOrders({ preserveSelection: true, silent: true });
+  });
+
+  // ── Payment ──
+  const handlePay = useStableCallback(() => {
+    if (om.currentOrderName && om.itemsList.length) setPayingOrder(om.currentOrderName);
+  });
+
+  const handlePaid = useStableCallback(() => {
+    // The invoiced order leaves the table's open orders
+    om.loadOrders({ preserveSelection: false, silent: false });
   });
 
   // ─── Loading ───
@@ -154,16 +191,16 @@ function Order({ table, tableName, posProfile, open, onClose, title }) {
     grandTotal: om.totals.grandTotal,
     // Actions
     onSendOrder: om.sendOrder,
-    onPay: om.pay,          // connect your pay handler
-    onAccount: om.account,  // connect your account handler
-    onDivide: om.divide,    // connect your divide handler
-    onTransfer: om.transfer,// connect your transfer handler
+    onPay: handlePay,
+    onAccount: handleAccount,
+    onDivide: () => setDialog("divide"),
+    onTransfer: () => setDialog("transfer"),
+    onVoid: handleDeleteOrder,
+    onRefresh: handleRefresh,
     pendingCount: om.pendingCount,
     hasItems: om.itemsList.length > 0,
     hasOrder: !!om.currentOrder,
   };
-
-  console.log(["OM", om])
 
   // ── Shared OrderTabs props ──
   const orderTabsProps = {
@@ -214,9 +251,11 @@ function Order({ table, tableName, posProfile, open, onClose, title }) {
   );
 
   const actionCustomer = () => {
-    MetaForm.save('Table Order', om?.currentOrder?.name, {
+    if (!om?.currentOrder?.name) return;
+    MetaForm.save('Table Order', om.currentOrder.name, {
       title: __(`Update Customer`),
       fields: ['customer'],
+      onSave: () => handleRefresh(),
     });
   }
 
@@ -237,7 +276,9 @@ function Order({ table, tableName, posProfile, open, onClose, title }) {
             onClick={actionCustomer} 
             className="shrink-0 flex items-center gap-1.5 px-3.5 py-1.5 text-md font-semibold whitespace-nowrap transition-all bg-indigo-500/15 text-indigo-400 border-b border-indigo-500/60"
           >
-            <span className="link">{table.customer || 'Guest'}</span>
+            <span className="link">
+              {om.currentOrder?.customer_name || om.currentOrder?.customer || table.customer || __('Guest')}
+            </span>
           </button>
           <div className={`flex-1 overflow-y-auto ${pendingCls}`}>  
             <OrderItems
@@ -265,6 +306,27 @@ function Order({ table, tableName, posProfile, open, onClose, title }) {
       </div>
     )} onClose={onClose} open={open}>
       {isMobile ? Mobile: Desk}
+      {payingOrder && <PaymentPanel
+        key={payingOrder}
+        open={!!payingOrder}
+        orderName={payingOrder}
+        title={title}
+        waitForSync={om.waitForSync}
+        onClose={() => setPayingOrder(null)}
+        onPaid={handlePaid}
+      />}
+      {dialog === "divide" && <DivideDialog
+        open
+        items={om.itemsList}
+        onClose={() => setDialog(null)}
+        onConfirm={om.divideOrder}
+      />}
+      {dialog === "transfer" && <TransferDialog
+        open
+        orderName={om.currentOrderName}
+        onClose={() => setDialog(null)}
+        onConfirm={om.transferOrder}
+      />}
     </Modal>
   )
 }

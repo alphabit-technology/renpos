@@ -2,8 +2,19 @@ import { FloorObject } from './FloorObject'
 import { Settings, Trash2, Square, Circle, User, Users, Utensils } from 'lucide-react'
 
 import { ActionButton } from '@c/ui/ActionButton.jsx'
+import { useRestaurant } from '@/context/RestaurantContext.jsx'
+import { useState } from 'react'
+import { KitchenView } from '@c/kitchen/KitchenView.jsx'
 
 export function Station({ station, onSelect, onDelete }) {
+  const { callMethod, editing } = useRestaurant()
+  const [kitchenOpen, setKitchenOpen] = useState(false)
+
+  // Editing the floor: select/move the station. Otherwise: open its kitchen screen.
+  const handleSelect = (e) => {
+    if (editing) onSelect?.(e)
+    else setKitchenOpen(true)
+  }
   const handleStationEdit = () => {
     /* DeskForm.open({
       doctype: "Ren Station",
@@ -46,11 +57,13 @@ export function Station({ station, onSelect, onDelete }) {
   }
 
   return (
+    <>
+    {kitchenOpen && <KitchenView open station={station} onClose={() => setKitchenOpen(false)} />}
     <FloorObject
       data={station}
       doctype="Ren Station"
       defaultColor="#9f4c5c"
-      onSelect={onSelect}
+      onSelect={handleSelect}
       onDelete={onDelete}
       allowShape={false}
       renderBadges={(data, editing) => (
@@ -82,5 +95,6 @@ export function Station({ station, onSelect, onDelete }) {
         </>
       )}
     />
+    </>
   )
 }

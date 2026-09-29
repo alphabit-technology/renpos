@@ -109,6 +109,9 @@ def init_restaurant(pos_profile=None):
 
 def _get_default_pos_profile():
     """Auto-detect POS Profile for current user."""
+    from restaurant_management.api.guards import current_pos_profile
+    return current_pos_profile()
+
     user = frappe.session.user
 
     # 1. User's default POS Profile

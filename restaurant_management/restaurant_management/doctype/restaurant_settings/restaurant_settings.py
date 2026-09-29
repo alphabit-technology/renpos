@@ -127,10 +127,8 @@ class RestaurantSettings(Document):
         return frappe.get_doc("Desk Form", "order-item-editor")
 
     def get_current_pos_profile_name(self):
-        #return self.pos_profile
-        pos_profile = get_pos_profile(
-            frappe.defaults.get_user_default('company'))
-        return pos_profile.name if pos_profile else None
+        from restaurant_management.api.guards import current_pos_profile
+        return current_pos_profile()
 
     def has_access_to_room(self, room):
         return len(self.restaurant_access("Ren Room", dict(object_name=room))) > 0
@@ -259,5 +257,6 @@ class RestaurantSettings(Document):
 
 @frappe.whitelist()
 def reinstall():
-    frappe.only_for("System Manager")
+    from restaurant_management.api.guards import require_system_manager
+    require_system_manager()
     return install.after_install()

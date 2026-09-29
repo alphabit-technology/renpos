@@ -164,6 +164,8 @@ def get_context(context):
 @frappe.whitelist()
 def accept(desk_form, data, doc_name=None):
 	'''Save the desk form'''
+	from restaurant_management.api.guards import require_restaurant_user
+	require_restaurant_user()  # desk forms are a restaurant tool
 	data = frappe._dict(json.loads(data))
 	doctype = data.doctype if not data.doctype else frappe.db.get_value('Desk Form', desk_form, 'doc_type')
 

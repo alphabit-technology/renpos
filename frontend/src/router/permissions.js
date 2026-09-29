@@ -42,11 +42,8 @@ export function checkPermission(rule) {
   const checks = [];
 
   if (doctype && perm) {
-    const key = PERM_KEY_MAP[doctype];
+    // Permissions come from the server keyed by doctype (init_restaurant).
     return _rm?.permissions?.[doctype]?.[perm]
-    const permObj = key ? (_rm?.permissions?.[key] || {}) : {};
-    const perms = Array.isArray(perm) ? perm : [perm];
-    checks.push(perms.every(p => !!permObj[p]));
   }
 
   if (roles) {
@@ -121,7 +118,7 @@ export const canOpenOrderManage = (table) => {
   if(!_rm) return false;
 
   if (table.current_user !== frappe.session.user && table.orders_count > 0) {
-    if (_rm.restrictions.restricted_to_owner_table) {
+    if (_rm.restrictions?.restricted_to_owner_table) {
       return checkPermissions("order", "manage");
     }
   }
@@ -147,7 +144,7 @@ export const checkPermissions = (model = null, action, record = null) => {
 
     const exception = () => {
       r = false;
-      _rm.exceptions.map(e => {
+      (_rm.exceptions || []).map(e => {
         r = e[model + "_" + action] === 1;
       });
     }
@@ -158,17 +155,17 @@ export const checkPermissions = (model = null, action, record = null) => {
       }
     } else {
       if (record.data.owner !== frappe.session.user) {
-        if (model === "order" && _rm.restrictions.restricted_to_owner_order) {
+        if (model === "order" && _rm.restrictions?.restricted_to_owner_order) {
           exception();
         }
-        if (model === "table" && _rm.restrictions.restricted_to_owner_table) {
+        if (model === "table" && _rm.restrictions?.restricted_to_owner_table) {
           exception();
         }
       }
     }
 
     if (model === 'pos' && r) {
-      r = _rm.pos_profile["allow_" + action] === 1;
+      r = _rm.pos_profile?.["allow_" + action] === 1;
     }
   }
 

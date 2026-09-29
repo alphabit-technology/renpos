@@ -21,6 +21,7 @@ def get_pos_data(pos_profile):
     """
     from restaurant_management.api.guards import (
         require_restaurant_user, check_pos_profile_access, user_pos_permissions,
+        effective_price_list,
     )
 
     require_restaurant_user()
@@ -40,7 +41,7 @@ def get_pos_data(pos_profile):
         "allow_discount_change": user_perms["allow_discount_change"],
         "allow_rate_change": user_perms["allow_rate_change"],
         "is_manager": user_perms["is_manager"],
-        "price_list": profile.selling_price_list,
+        "price_list": effective_price_list(profile.name),
         "warehouse": profile.warehouse,
         "write_off_account": profile.write_off_account,
         "write_off_cost_center": profile.write_off_cost_center,
@@ -87,7 +88,8 @@ def get_items_with_prices(profile):
 
     This is the payload that enables client-side price lookups.
     """
-    price_list = profile.selling_price_list
+    from restaurant_management.api.guards import effective_price_list
+    price_list = effective_price_list(profile.name)
 
     # Build item group filter
     item_groups = None
@@ -294,14 +296,22 @@ def get_pricing_rules(profile):
     today = nowdate()
     company = profile.company
 
+    # Only plain price rules the POS can apply by itself: no coupon, no
+    # Python condition, no free-item (product) discounts, and for this
+    # price list. The server re-checks claimed rules against this same list.
     base_conditions = """
         pr.disable = 0
         AND pr.selling = 1
         AND (pr.company IN (%(company)s, '') OR pr.company IS NULL)
         AND (pr.valid_from IS NULL OR pr.valid_from <= %(today)s)
         AND (pr.valid_upto IS NULL OR pr.valid_upto >= %(today)s)
+        AND IFNULL(pr.coupon_code_based, 0) = 0
+        AND IFNULL(pr.price_or_product_discount, 'Price') = 'Price'
+        AND IFNULL(pr.`condition`, '') = ''
+        AND (IFNULL(pr.for_price_list, '') = '' OR pr.for_price_list = %(price_list)s)
     """
-    params = {"company": company, "today": today}
+    from restaurant_management.api.guards import effective_price_list
+    params = {"company": company, "today": today, "price_list": effective_price_list(profile.name)}
 
     result = []
 

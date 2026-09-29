@@ -54,6 +54,20 @@ export default function useOrderManager({ tableName, posData, onClose }) {
   const [orders, setOrders] = useState([]);
   const [currentOrderName, setCurrentOrderName] = useState(null);
   const [items, setItems] = useState({});
+
+  // Latest items, updated synchronously. Every write goes through
+  // setItemsSync so callers can read the result immediately (e.g. to queue
+  // the server save). Relying on a setState updater having run doesn't
+  // work: React may defer it, and the change would never be saved.
+  const itemsRef = useRef({});
+  const setItemsSync = useCallback((updater) => {
+    const next = typeof updater === "function" ? updater(itemsRef.current) : updater;
+    if (next !== itemsRef.current) {
+      itemsRef.current = next;
+      setItems(next);
+    }
+    return next;
+  }, []);
   const [currentItemId, setCurrentItemId] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -73,6 +87,9 @@ export default function useOrderManager({ tableName, posData, onClose }) {
   // Set once loadOrders exists; lets the save queue resync after a failure.
   const reloadRef = useRef(null);
 
+  // Resolvers waiting for the save queue to drain (see waitForSync).
+  const syncWaitersRef = useRef([]);
+
   // Debounce timer for realtime refresh
   const realtimeTimerRef = useRef(null);
 
@@ -81,9 +98,6 @@ export default function useOrderManager({ tableName, posData, onClose }) {
 
   const currentItemIdRef = useRef(currentItemId);
   currentItemIdRef.current = currentItemId;
-
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
 
   const taxInclusive = posData?.taxInclusive || false;
   const taxInclusiveRef = useRef(taxInclusive);
@@ -130,7 +144,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
   // Only price fields are taken, so a qty typed meanwhile is kept.
   const applyServerItem = useCallback((serverItem) => {
     if (!serverItem?.identifier) return;
-    setItems((prev) => {
+    setItemsSync((prev) => {
       const cur = prev[serverItem.identifier];
       if (!cur) return prev;
       const same = ["price_list_rate", "discount_percentage", "rate"].every(
@@ -179,7 +193,16 @@ export default function useOrderManager({ tableName, posData, onClose }) {
 
     savingRef.current = false;
     syncingRef.current = false;
+    const waiters = syncWaitersRef.current;
+    syncWaitersRef.current = [];
+    waiters.forEach((resolve) => resolve());
   }, [applyServerItem]);
+
+  /** Resolves once every queued item change has reached the server. */
+  const waitForSync = useCallback(() => {
+    if (!savingRef.current && saveQueue.current.length === 0) return Promise.resolve();
+    return new Promise((resolve) => syncWaitersRef.current.push(resolve));
+  }, []);
 
   const queueSave = useCallback((orderName, item) => {
     saveQueue.current.push({ type: "save", orderName, item });
@@ -226,7 +249,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
       // React keeps showing old data until this commits.
       // If user clicks another order mid-render, React aborts this one.
       startItemsTransition(() => {
-        setItems(itemsMap);
+        setItemsSync(itemsMap);
         setCurrentItemId(
           serverItems.length > 0 ? serverItems[0].identifier : null
         );
@@ -304,7 +327,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     try {
       await OrderAPI.deleteOrder(orderName);
       setOrders((prev) => prev.filter((o) => o.name !== orderName));
-      setItems({});
+      setItemsSync({});
       setCurrentItemId(null);
       setCurrentOrderName(null);
     } catch (err) {
@@ -316,13 +339,34 @@ export default function useOrderManager({ tableName, posData, onClose }) {
   // ITEM OPERATIONS — All stable identity
   // ═══════════════════════════════════════════════
 
+  // First item on a table without an open order creates the order.
+  const creatingOrderRef = useRef(false);
+  const pendingFirstItemsRef = useRef([]);
+  const pushItemRef = useRef(null);
+
   const pushItem = useCallback((menuItem) => {
     const orderName = currentOrderNameRef.current;
     if (!orderName) {
-      frappe.show_alert({
-        message: __("Please select or create an order"),
-        indicator: "orange",
-      });
+      if (!tableName) return;
+      pendingFirstItemsRef.current.push(menuItem);
+      if (creatingOrderRef.current) return;
+      creatingOrderRef.current = true;
+      OrderAPI.addOrder(tableName)
+        .then((result) => {
+          const orderData = result?.order?.data || result?.order || result;
+          if (!orderData?.name) return;
+          setOrders((prev) => [...prev, orderData]);
+          currentOrderNameRef.current = orderData.name;
+          setCurrentOrderName(orderData.name);
+          setItemsSync({});
+          const queued = pendingFirstItemsRef.current.splice(0);
+          queued.forEach((mi) => pushItemRef.current?.(mi));
+        })
+        .catch((err) => {
+          pendingFirstItemsRef.current = [];
+          console.error("Failed to create order:", err);
+        })
+        .finally(() => { creatingOrderRef.current = false; });
       return;
     }
 
@@ -330,7 +374,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     const pd = posDataRef.current;
     let sideEffects = null;
 
-    setItems((prev) => {
+    setItemsSync((prev) => {
       const existing = Object.values(prev).find(
         (i) => i.item_code === menuItem.item_code && isEditable(i.status)
       );
@@ -384,14 +428,15 @@ export default function useOrderManager({ tableName, posData, onClose }) {
       setCurrentItemId(sideEffects.identifier);
       queueSave(orderName, sideEffects.item);
     }
-  }, [queueSave]);
+  }, [queueSave, tableName]);
+  pushItemRef.current = pushItem;
 
   const updateItem = useCallback((identifier, field, value) => {
     const orderName = currentOrderNameRef.current;
     const ti = taxInclusiveRef.current;
     let sideEffects = null;
 
-    setItems((prev) => {
+    setItemsSync((prev) => {
       const item = prev[identifier];
       if (!item || !isEditable(item.status)) return prev;
 
@@ -423,7 +468,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     const orderName = currentOrderNameRef.current;
     let shouldSync = false;
 
-    setItems((prev) => {
+    setItemsSync((prev) => {
       const item = prev[identifier];
       if (!item || !isDeletable(item.status, posDataRef.current?.isManager)) return prev;
       shouldSync = true;
@@ -442,7 +487,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     const orderName = currentOrderNameRef.current;
     let updatedItem = null;
 
-    setItems((prev) => {
+    setItemsSync((prev) => {
       const item = prev[identifier];
       if (!item) return prev;
       const updated = { ...item, notes };
@@ -470,6 +515,8 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     );
     if (!hasPending) return;
 
+    // pending item saves must reach the server before the kitchen gets the order
+    await waitForSync();
     syncingRef.current = true;
     try {
       const result = await OrderAPI.sendOrder(orderName);
@@ -492,28 +539,34 @@ export default function useOrderManager({ tableName, posData, onClose }) {
         // Low-priority: status icons transition (Pending → Sent).
         // The "Order" button feedback is already instant.
         startItemsTransition(() => {
-          setItems(itemsMap);
+          setItemsSync(itemsMap);
         });
       }
     } catch (err) {
       console.error("Failed to send order:", err);
     }
     syncingRef.current = false;
-  }, [startItemsTransition]);
+  }, [startItemsTransition, waitForSync]);
 
   const transferOrder = useCallback(async (targetTable) => {
     const orderName = currentOrderNameRef.current;
     if (!orderName) return;
-    try {
-      await OrderAPI.transferOrder(orderName, targetTable);
-      setOrders((prev) => prev.filter((o) => o.name !== orderName));
-      setItems({});
-      setCurrentItemId(null);
-      setCurrentOrderName(null);
-    } catch (err) {
-      console.error("Failed to transfer:", err);
-    }
-  }, []);
+    await waitForSync();
+    await OrderAPI.transferOrder(orderName, targetTable);
+    // the order left this table
+    reloadRef.current?.({ preserveSelection: false, silent: false });
+  }, [waitForSync]);
+
+  /** Split: map = { identifier: { qty } } moved into a new order. */
+  const divideOrder = useCallback(async (map) => {
+    const orderName = currentOrderNameRef.current;
+    if (!orderName) return;
+    await waitForSync();
+    const res = await OrderAPI.divideOrder(orderName, map);
+    await reloadRef.current?.({ preserveSelection: true, silent: true });
+    const newName = res?.new_order?.data?.name;
+    if (newName) selectOrder(newName);
+  }, [waitForSync, selectOrder]);
 
   const setCustomer = useCallback(async (customer) => {
     const orderName = currentOrderNameRef.current;
@@ -634,6 +687,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     deleteOrder,
     sendOrder,
     transferOrder,
+    divideOrder,
     setCustomer,
     setDinners,
 
@@ -646,5 +700,6 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     isItemEditable,
     isItemDeletable,
     loadOrders,
+    waitForSync,
   };
 }

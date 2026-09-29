@@ -129,7 +129,7 @@ export class FrappeForm extends frappe.ui.FieldGroup {
             return this.doc ? this.doc[df.fieldname] : [];
           }
 
-          if (this.data.hasOwnProperty(df.fieldname)) {
+          if (Object.prototype.hasOwnProperty.call(this.data, df.fieldname)) {
             df.fields = this.data[df.fieldname];
           }
 
@@ -353,7 +353,7 @@ export class FrappeForm extends frappe.ui.FieldGroup {
     e && typeof e === 'function' && e(this.get_value(fieldname));
   }
 
-  execute_event(fieldname, event) {
+  execute_event(fieldname, event, fn) {
     const field = this.get_field(fieldname);
 
     if (field && field.df) {

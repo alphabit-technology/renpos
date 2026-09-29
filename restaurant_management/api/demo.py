@@ -138,6 +138,8 @@ ITEMS = {
 @frappe.whitelist()
 def generate_demo_data():
     """Create all demo Item Groups and Items. Safe to run multiple times."""
+    from restaurant_management.api.guards import require_system_manager
+    require_system_manager()
     created = {"groups": [], "items": []}
 
     # 1. Ensure parent groups exist (Food, Beverages)
@@ -194,6 +196,8 @@ def generate_demo_data():
 @frappe.whitelist()
 def cleanup_demo_data():
     """Remove all demo items (those with DEMO- prefix)."""
+    from restaurant_management.api.guards import require_system_manager
+    require_system_manager()
     deleted = 0
 
     items = frappe.get_all("Item", filters={"item_code": ["like", f"{DEMO_PREFIX}%"]}, pluck="name")

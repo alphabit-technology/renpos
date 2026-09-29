@@ -88,7 +88,7 @@ export const OrderPad = memo(function OrderPad({
   onFieldSelect, onMinus, onPlus, onDelete,
   activeField, value, onChange, onEnter,
   totalTax = 0, grandTotal = 0,
-  onSendOrder, onPay, onAccount, onDivide, onTransfer,
+  onSendOrder, onPay, onAccount, onDivide, onTransfer, onVoid, onRefresh,
   pendingCount = 0, hasItems = false, hasOrder = false,
   currentOrder
 }) {
@@ -96,6 +96,7 @@ export const OrderPad = memo(function OrderPad({
     MetaForm.save("Table Order", currentOrder?.name, {
       title: __("Set dinners"),
       fields: ["dinners"],
+      onSave: () => onRefresh?.(),
     });
   };
 
@@ -103,12 +104,7 @@ export const OrderPad = memo(function OrderPad({
     MetaForm.save("Table Order", currentOrder?.name, {
       title: __("Set note"),
       fields: ["notes"],
-    });
-  };
-
-  const deleteOrder = () => {
-    frappe.call("restaurant_management.api.order.delete_order", {
-      order_name: currentOrder?.name,
+      onSave: () => onRefresh?.(),
     });
   };
 
@@ -155,7 +151,7 @@ export const OrderPad = memo(function OrderPad({
               label={__("Promo")}
             />
             <SingleAction
-              action={deleteOrder}
+              action={onVoid}
               Icon={Trash2Icon}
               label={__("Void")}
               className="text-destructive/60 border-destructive/20 hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30"

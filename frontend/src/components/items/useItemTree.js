@@ -8,7 +8,7 @@ const METHOD_PATH = "restaurant_management.restaurant_management.doctype.restaur
  * useItemTree — Item catalog with server-side pagination and menu filtering.
  *
  * All heavy queries go through `get_items_for_tree` whitelisted method.
- * Groups still loaded via frappe.client.get_list (they're a normal doctype).
+ * Groups come from `get_item_groups` (no Item Group permission needed).
  *
  * @param {object} opts
  * @param {boolean}  opts.enabled    - Mount/unmount control
@@ -40,14 +40,9 @@ export function useItemTree({ enabled = true, menuName = null, priceList = null 
   const loadGroups = useCallback(async () => {
     setLoadingGroups(true);
     try {
+      // restaurant endpoint: waiters have no read permission on Item Group
       const r = await frappe.call({
-        method: "frappe.client.get_list",
-        args: {
-          doctype: "Item Group",
-          fields: ["name", "parent_item_group", "is_group", "image", "lft", "rgt"],
-          order_by: "lft",
-          limit_page_length: 0,
-        },
+        method: `${METHOD_PATH}.get_item_groups`,
       });
       setAllGroups(r.message || []);
     } catch (err) {

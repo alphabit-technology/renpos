@@ -276,7 +276,8 @@ const ItemCard = memo(
     renderAction,
     showOrderQty = true,
   }) {
-    const orderQty = showOrderQty ? useOrderQty(item.item_code) : 0;
+    const qty = useOrderQty(item.item_code); // hooks can't be conditional
+    const orderQty = showOrderQty ? qty : 0;
     const colors = getCategoryColor(item.item_group);
     const isAvailable = item.is_available !== false;
 

@@ -83,9 +83,10 @@ class RenRestaurant(Document):
                 "name": self.name,
                 "restaurant_name": self.restaurant_name,
                 "company": self.company,
-                "branch": self.branch,
+                "branch": self.get("branch"),  # optional custom field
                 "logo": self.logo,
-                "active_menu": frappe.db.get_value("Restaurant Menu",
+                # the restaurant's own Active Menu, else the company's default menu
+                "active_menu": self.get("active_menu") or frappe.db.get_value("Restaurant Menu",
                     filters=dict(
                         company=self.company,
                         is_default=1,
@@ -338,5 +339,5 @@ class RenRestaurant(Document):
 
 
     def get_current_pos_profile_name(self):
-        pp = get_pos_profile(frappe.defaults.get_user_default('company'))
-        return pp.name if pp else None
+        from restaurant_management.api.guards import current_pos_profile
+        return current_pos_profile()

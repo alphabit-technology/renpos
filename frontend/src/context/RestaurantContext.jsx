@@ -16,19 +16,13 @@ export function RestaurantProvider({ children, posWrapper }) {
   const [currentTable, setCurrentTable] = usePersistedState("ren_current_table", null)
   const [POS, setPOS] = useState(null);
   const [settingsUpdate, setSettingsUpdate] = useState(0)
+  const [startupError, setStartupError] = useState(null)
 
   useEffect(() => {
     initPermissions(RM)
     if(!generalCustomAccess(RM)) setEditing(false)
   }, [RM])
 
-  useFrappeRealtime("check_floors", (data) => {
-    callMethod("Ren Restaurant", RM?.restaurant.name, "load_floors").then(r => {
-      setRM(prev => {
-        return { ...prev, floors: r };
-      });
-    })
-  }, [RM?.restaurant?.name]);
 
   const callMethod = async (Model, Name, Method, { args = {}, ...options } = {}) => {
     try {
@@ -49,6 +43,14 @@ export function RestaurantProvider({ children, posWrapper }) {
       options.always?.()
     }
   }
+
+  useFrappeRealtime("check_floors", () => {
+    callMethod("Ren Restaurant", RM?.restaurant.name, "load_floors").then(r => {
+      setRM(prev => {
+        return { ...prev, floors: r };
+      });
+    })
+  }, [RM?.restaurant?.name]);
 
   const callApi = async (method, args = {}) => {
     try {
@@ -82,7 +84,13 @@ export function RestaurantProvider({ children, posWrapper }) {
 	}
 
   const loadSettingData = () => {
-    frappe.xcall(`restaurant_management.api.restaurant.init_restaurant`, {}).then(r => {
+    // frappe.call (not xcall): its error callback gets the server message
+    new Promise((resolve, reject) => frappe.call({
+      method: "restaurant_management.api.restaurant.init_restaurant",
+      args: {},
+      callback: (res) => resolve(res.message),
+      error: reject,
+    })).then(r => {
       // Startup check: which frontend build and backend version are running
       console.info(
         "%c[Restaurant]%c started",
@@ -98,7 +106,11 @@ export function RestaurantProvider({ children, posWrapper }) {
       rm.crm_settings = {}
       setRM(rm)
       setSettingsUpdate(settingsUpdate+1)
+      setStartupError(null)
       setReady(true)
+    }).catch((e) => {
+      // e.g. user without POS Profile / restaurant not configured
+      setStartupError(_serverMessage(e) || __("The restaurant could not be loaded."))
     })
   }
 
@@ -117,9 +129,28 @@ export function RestaurantProvider({ children, posWrapper }) {
       restaurant: RM.restaurant,
       settingsUpdate
     }}>
-      {ready ? children : null}
+      {ready ? children : startupError ? (
+        <div className="flex h-full items-center justify-center p-6">
+          <div className="max-w-md rounded-2xl border border-border bg-card p-6 text-center">
+            <p className="text-lg font-semibold mb-2">{__("Restaurant setup required")}</p>
+            <p className="text-sm text-muted-foreground">{startupError}</p>
+          </div>
+        </div>
+      ) : null}
     </RestaurantContext.Provider>
   )
+}
+
+/** First readable message from a failed frappe.call / xcall. */
+function _serverMessage(e) {
+  try {
+    const raw = e?._server_messages || e?.response?._server_messages;
+    if (raw) {
+      const first = JSON.parse(JSON.parse(raw)[0]);
+      return (first.message || "").replace(/<[^>]+>/g, "");
+    }
+  } catch { /* fall through */ }
+  return e?.message && !String(e.message).startsWith("HTTP") ? e.message : null;
 }
 
 export const useRestaurant = () => {

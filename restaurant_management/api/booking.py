@@ -36,20 +36,25 @@ def get_table_availability(date, time_start, time_end, party_size=0):
     date = getdate(date)
 
     # All tables in this restaurant
-    tables = frappe.get_all(
-        "Ren Table",
-        fields=["name", "description as table_name", "no_of_seats as capacity", "room"],
-        order_by="description asc",
+    # Tables of the user's restaurant (all tables if it can't be resolved)
+    from restaurant_management.api.guards import current_pos_profile
+    profile = current_pos_profile()
+    restaurant = frappe.db.get_value("POS Profile", profile, "ren_restaurant") if profile else None
+    tables = frappe.db.sql(
+        """
+        SELECT t.name, t.description AS table_name, t.no_of_seats AS capacity,
+               t.room, r.description AS room_name
+        FROM `tabRen Table` t
+        LEFT JOIN `tabRen Room` r ON r.name = t.room
+        LEFT JOIN `tabRen Floor` f ON f.name = r.floor
+        WHERE (%(restaurant)s IS NULL OR f.restaurant = %(restaurant)s)
+        ORDER BY t.description ASC
+        """,
+        {"restaurant": restaurant},
+        as_dict=True,
     )
-
-    # Enrich with room names
-    room_names = {}
     for t in tables:
-        if t.room and t.room not in room_names:
-            room_names[t.room] = (
-                frappe.db.get_value("Ren Table", t.room, "description") or t.room
-            )
-        t["room_name"] = room_names.get(t.room, "")
+        t["room_name"] = t.room_name or t.room or ""
 
     # All active reservations for this date — single query
     active = frappe.db.sql(

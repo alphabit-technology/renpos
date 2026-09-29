@@ -5,8 +5,8 @@ import { useRooms } from '@/context/RoomsContext.jsx'
 import {can, generalCustomAccess} from "@/router/permissions"
 
 export function AddTableButton({ onAdd }) {
-  if(!can("table.create")) return;
   const { editing } = useRestaurant()
+  if (!can("table.create")) return null
   if (!editing) return null
   
   return (
@@ -19,8 +19,8 @@ export function AddTableButton({ onAdd }) {
 }
 
 export function AddProductionCenterButton({ onAdd }) {
-  if(!can("station.create")) return;
   const { editing } = useRestaurant()
+  if (!can("station.create")) return null
   if (!editing) return null
   
   return (
@@ -33,9 +33,9 @@ export function AddProductionCenterButton({ onAdd }) {
 }
 
 export function EditRoomButton({ onClick }) {
-  if(!can("room.write")) return;
   const { editing } = useRestaurant()
   const {currentRoom} = useRooms();
+  if (!can("room.write")) return null
   if (!editing || !currentRoom) return null
   
   return (
@@ -48,9 +48,9 @@ export function EditRoomButton({ onClick }) {
 }
 
 export function DeleteRoomButton({ onClick }) {
-  if(!can("room.delete")) return;
   const {editing } = useRestaurant()
   const {currentRoom} = useRooms();
+  if (!can("room.delete")) return null
   if (!editing || !currentRoom) return null
   
   return (
@@ -66,7 +66,7 @@ export function DeleteRoomButton({ onClick }) {
 }
 
 export function MenuButton({ onClick }) {
-  if(can("menu.write") || can("menu.create")){
+  if (can("menu.write") || can("menu.create")) {
     return (
       <ActionButton
         icon={Menu}
@@ -75,6 +75,7 @@ export function MenuButton({ onClick }) {
       />
     )
   }
+  return null
 }
 
 export function BookingButton({onClick}){

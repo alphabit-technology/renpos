@@ -1,8 +1,0 @@
-{
-    "css/restaurant_management.css": [
-        "public/restaurant/css/action-button.less"
-    ],
-    "js/restaurant_management.min.js": [
-        "restaurant_management/page/restaurant_manage/pos_restaurant_controller.js"
-    ]
-}

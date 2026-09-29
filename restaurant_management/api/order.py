@@ -19,7 +19,15 @@ from restaurant_management.api.guards import (
     user_pos_permissions,
     is_manager,
 )
-from restaurant_management.api.invoicing import create_invoice
+from restaurant_management.api.invoicing import (
+    create_invoice,
+    build_invoice_preview,
+    can_take_payments,
+    amount_due,
+    opening_status,
+    payment_modes,
+    get_invoice_doctype,
+)
 
 EDITABLE_STATUSES = ("Pending", "Attending", "", None)
 
@@ -91,6 +99,7 @@ def add_order(table_name):
     # Get POS Profile from table's room/floor or default
     pos_profile = _get_pos_profile_for_table(table)
     check_pos_profile_access(pos_profile)
+    ensure_table_company(table_name, fallback=frappe.db.get_value("POS Profile", pos_profile, "company"))
 
     order = frappe.get_doc({
         "doctype": "Table Order",
@@ -115,6 +124,7 @@ def delete_order(order_name):
     Legacy: Table Order._delete
     """
     order = get_order(order_name, "write")
+    _check_order_open(order)  # paid/closed orders can't be voided
 
     # Check if any items have been sent to kitchen
     sent_items = frappe.db.count(
@@ -132,6 +142,7 @@ def delete_order(order_name):
     table_name = order.table
     order.delete(ignore_permissions=True)
 
+    _check_and_free_table(table_name)
     _publish_order_event(table_name, order_name, "Delete", data={"name": order_name})
 
     return {"ok": True}
@@ -305,6 +316,9 @@ def send_order(order_name):
         frappe.throw(_("No pending items to send"))
 
     order.products_not_ordered = 0
+    # stations that group by order follow the order status
+    if order.status in ("Draft", "Opened", "Pending", "Attending", "", None):
+        order.status = "Sent"
     order.save(ignore_permissions=True)
 
     # Publish to kitchen displays
@@ -348,14 +362,114 @@ def transfer_order(order_name, target_table):
     target = frappe.get_doc("Ren Table", target_table)
     target.check_permission("read")
     old_table = order.table
+    if target_table == old_table:
+        frappe.throw(_("The order is already on table {0}").format(target.description or target_table))
+    if _table_restaurant(target_table) != _profile_restaurant(order.pos_profile):
+        frappe.throw(_("Table {0} belongs to another restaurant").format(target.description or target_table))
 
+    order_company = order.company or frappe.db.get_value("POS Profile", order.pos_profile, "company")
+    ensure_table_company(target_table, fallback=order_company)
     order.table = target_table
     order.save(ignore_permissions=True)
 
+    _check_and_free_table(old_table)
     _publish_order_event(old_table, order_name, "transfer")
     _publish_order_event(target_table, order_name, "update")
 
-    return {"ok": True}
+    return {"ok": True, "table": target_table}
+
+
+@frappe.whitelist()
+def get_transfer_targets(order_name):
+    """
+    Tables of the order's restaurant grouped by floor and room, for the
+    transfer dialog. The order's current table is marked `current`.
+    """
+    order = get_order(order_name, "read")
+    restaurant = _profile_restaurant(order.pos_profile)
+
+    rows = frappe.db.sql(
+        """
+        SELECT t.name, t.description, t.no_of_seats, t.customer,
+               r.name AS room, r.description AS room_description,
+               f.name AS floor, f.description AS floor_description
+        FROM `tabRen Table` t
+        INNER JOIN `tabRen Room` r ON r.name = t.room
+        INNER JOIN `tabRen Floor` f ON f.name = r.floor
+        WHERE f.restaurant = %(restaurant)s
+        ORDER BY f.description, r.description, t.description
+        """,
+        {"restaurant": restaurant},
+        as_dict=True,
+    )
+    open_counts = dict(frappe.db.sql(
+        """
+        SELECT `table`, COUNT(*) FROM `tabTable Order`
+        WHERE status NOT IN ('Invoiced', 'Cancelled') AND IFNULL(`table`, '') != ''
+        GROUP BY `table`
+        """
+    ))
+
+    floors = {}
+    for r in rows:
+        floor = floors.setdefault(r.floor, {"name": r.floor, "description": r.floor_description, "rooms": {}})
+        room = floor["rooms"].setdefault(r.room, {"name": r.room, "description": r.room_description, "tables": []})
+        room["tables"].append({
+            "name": r.name,
+            "description": r.description or r.name,
+            "no_of_seats": r.no_of_seats,
+            "customer": r.customer,
+            "orders_count": open_counts.get(r.name, 0),
+            "current": r.name == order.table,
+        })
+
+    return [
+        {**f, "rooms": list(f["rooms"].values())}
+        for f in floors.values()
+    ]
+
+
+def ensure_table_company(table, fallback=None):
+    """
+    Table Order.company is mandatory and fetched from Ren Table.company,
+    which itself is copied down restaurant -> floor -> room -> table.
+    Tables created before their floor had a restaurant have it empty:
+    resolve it through the chain (or `fallback`) and store it on the table.
+    """
+    row = frappe.db.sql(
+        """
+        SELECT t.company, r.company, f.company, rest.company
+        FROM `tabRen Table` t
+        LEFT JOIN `tabRen Room` r ON r.name = t.room
+        LEFT JOIN `tabRen Floor` f ON f.name = r.floor
+        LEFT JOIN `tabRen Restaurant` rest ON rest.name = f.restaurant
+        WHERE t.name = %s
+        """,
+        table,
+    )
+    if not row:
+        return fallback
+    table_company = row[0][0]
+    company = next((c for c in row[0] if c), None) or fallback
+    if company and not table_company:
+        frappe.db.set_value("Ren Table", table, "company", company, update_modified=False)
+    return company
+
+
+def _profile_restaurant(pos_profile):
+    return frappe.db.get_value("POS Profile", pos_profile, "ren_restaurant")
+
+
+def _table_restaurant(table):
+    return frappe.db.sql(
+        """
+        SELECT f.restaurant FROM `tabRen Table` t
+        INNER JOIN `tabRen Room` r ON r.name = t.room
+        INNER JOIN `tabRen Floor` f ON f.name = r.floor
+        WHERE t.name = %s
+        """,
+        table,
+    )[0][0] if table else None
 
 
 @frappe.whitelist()
@@ -379,6 +493,7 @@ def divide_order(order_name, items):
         "customer": original.customer,
         "pos_profile": original.pos_profile,
         "status": "Draft",
+        "attending_status": "Pending",
     })
 
     for identifier, split_data in items.items():
@@ -396,7 +511,8 @@ def divide_order(order_name, items):
 
                 # Add to new order
                 new_order.append("entry_items", {
-                    "identifier": split_data.get("identifier", f"split_{identifier}"),
+                    # unique per row, so the same item can be split again later
+                    "identifier": f"{identifier}-{frappe.generate_hash(length=6)}",
                     "item_code": child.item_code,
                     "item_name": child.item_name,
                     "qty": split_qty,
@@ -408,8 +524,14 @@ def divide_order(order_name, items):
                     "item_tax_rate": child.item_tax_rate,
                     "notes": child.notes,
                     "status": child.status,
+                    "ordered_time": child.ordered_time,
+                    "batch_no": child.batch_no,
+                    "serial_no": child.serial_no,
                 })
                 break
+
+    if not new_order.entry_items:
+        frappe.throw(_("Choose at least one item to move to the new order"))
 
     # Remove zero-qty items from original
     original.entry_items = [i for i in original.entry_items if flt(i.qty) > 0]
@@ -475,6 +597,54 @@ def set_dinners(order_name, dinners):
 # ═══════════════════════════════════════════════════
 
 @frappe.whitelist()
+def get_payment_summary(order_name):
+    """
+    Everything the payment screen needs, computed by ERPNext exactly as
+    the real invoice will be (taxes from the POS Profile, rounding…),
+    plus the cashier's register status and the enabled modes of payment.
+    Nothing is saved.
+    """
+    order = get_order(order_name, "read")
+    _check_order_open(order)
+
+    profile = frappe.get_cached_doc("POS Profile", order.pos_profile)
+    if can_take_payments():
+        opening, register_problem = opening_status(order.pos_profile)
+    else:
+        opening, register_problem = None, "no_permission"
+    inv = build_invoice_preview(order)
+
+    return {
+        "order": order.name,
+        "table": order.table,
+        "customer": inv.customer,
+        "customer_name": inv.customer_name or inv.customer,
+        "invoice_doctype": get_invoice_doctype(),
+        "currency": inv.currency,
+        "precision": inv.precision("grand_total"),
+        "items_count": len(inv.items),
+        "net_total": inv.net_total,
+        "taxes": [
+            {"description": t.description, "rate": t.rate, "amount": t.tax_amount}
+            for t in inv.get("taxes") or []
+        ],
+        "total_taxes": inv.total_taxes_and_charges,
+        "discount_amount": inv.discount_amount,
+        "grand_total": inv.grand_total,
+        "rounding_adjustment": inv.rounding_adjustment,
+        "amount_due": amount_due(inv),
+        "payment_modes": payment_modes(profile),
+        "register": {
+            "opening_entry": opening.name if opening else None,
+            "problem": register_problem,  # None | "closed" | "outdated" | "no_permission"
+            "since": opening.period_start_date if opening else None,
+            "pos_profile": profile.name,
+            "company": profile.company,
+        },
+    }
+
+
+@frappe.whitelist()
 def process_payment(order_name, payments):
     """
     Charge an order: create and submit the POS invoice (POS Invoice or,
@@ -509,6 +679,8 @@ def process_payment(order_name, payments):
         "grand_total": invoice.grand_total,
         "rounded_total": invoice.rounded_total,
         "change_amount": invoice.get("change_amount") or 0,
+        "paid_amount": invoice.paid_amount,
+        "currency": invoice.currency,
     }
 
 
@@ -682,7 +854,9 @@ def _validate_item_calculation(item, order, existing=None):
     perms = user_pos_permissions(order.pos_profile)
 
     client_plr = flt(item.get("price_list_rate"))
-    server_price = _server_price(item_code, profile.selling_price_list)
+    from restaurant_management.api.guards import effective_price_list
+    price_list = effective_price_list(order.pos_profile)
+    server_price = _server_price(item_code, price_list)
     rule = _find_pricing_rule(
         item.get("pricing_rule"), item_code, item_doc.item_group, qty, profile, order.customer
     )
@@ -696,7 +870,14 @@ def _validate_item_calculation(item, order, existing=None):
     elif existing is not None:
         price_list_rate = flt(existing.price_list_rate)  # set earlier by an authorised user
     else:
-        price_list_rate = 0
+        # Never sell at 0 by accident: an item without a price needs a price
+        # list entry, or a user allowed to set the rate.
+        frappe.throw(
+            _("{0} has no price in price list {1}").format(
+                frappe.bold(item_doc.item_name or item_code), frappe.bold(price_list)
+            ),
+            title=_("Missing price"),
+        )
 
     if abs(price_list_rate - client_plr) > 0.01:
         frappe.log_error(
@@ -833,6 +1014,11 @@ def _get_pos_profile_for_table(table_doc):
     Determine which POS Profile to use for a table.
     Priority: Restaurant Permission > default POS Profile.
     """
+    from restaurant_management.api.guards import current_pos_profile
+    pos = current_pos_profile()
+    if pos:
+        return pos
+
     user = frappe.session.user
 
     # Check Restaurant Permission for this user
@@ -878,7 +1064,7 @@ def _get_pos_profile_for_table(table_doc):
 
 def _check_and_free_table(table_name):
     """Free table if no more active orders."""
-    active = frappe.db.get_count(
+    active = frappe.db.count(
         "Table Order",
         filters={
             "table": table_name,
@@ -888,9 +1074,8 @@ def _check_and_free_table(table_name):
 
     if active == 0:
         frappe.db.set_value("Ren Table", table_name, "customer", "")
-        table = frappe.get_doc("Ren Table", table_name)
-        if hasattr(table, "_on_update"):
-            table._on_update()
+        # refresh the table/room badges on every floor map
+        frappe.get_doc("Ren Table", table_name).synchronize()
 
 
 def _publish_order_event(table, order_name, action, data=None):

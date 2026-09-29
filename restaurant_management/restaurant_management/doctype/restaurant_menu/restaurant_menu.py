@@ -127,8 +127,15 @@ def get_items_for_tree(
     limit_start = int(limit_start)
     limit_page_length = int(limit_page_length)
 
-    # ── Base filters ──
-    filters = {"disabled": 0}
+    # ── Base filters ── (same rules the server applies when an item is ordered)
+    filters = {"disabled": 0, "is_sales_item": 1, "has_variants": 0}
+
+    # Prices must come from the POS price list the server validates against.
+    if not price_list:
+        from restaurant_management.api.guards import current_pos_profile, effective_price_list
+        profile = current_pos_profile()
+        if profile:
+            price_list = effective_price_list(profile)
 
     # ── Menu filter (child table query) ──
     if menu_name:
@@ -218,3 +225,16 @@ def get_items_for_tree(
         item["price_list_rate"] = price_map.get(item["item_code"], 0)
 
     return items
+
+@frappe.whitelist()
+def get_item_groups():
+    """
+    Item Group tree for the POS catalog. Restaurant staff don't need
+    read permission on Item Group (waiters usually don't have it).
+    """
+    require_restaurant_user()
+    return frappe.get_all(
+        "Item Group",
+        fields=["name", "parent_item_group", "is_group", "image", "lft", "rgt"],
+        order_by="lft",
+    )

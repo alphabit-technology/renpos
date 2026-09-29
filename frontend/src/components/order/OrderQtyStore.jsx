@@ -103,15 +103,15 @@ export function useQtyStore() {
  */
 export function useOrderQty(itemCode) {
   const store = useContext(QtyStoreContext);
-  if (!store) return 0;
 
+  // Hooks can't be conditional: without a store, subscribe to nothing.
   const subscribe = useCallback(
-    (onStoreChange) => store.subscribe(onStoreChange),
+    (onStoreChange) => (store ? store.subscribe(onStoreChange) : () => {}),
     [store]
   );
 
   const getSnapshot = useCallback(
-    () => store.getQty(itemCode),
+    () => (store ? store.getQty(itemCode) : 0),
     [store, itemCode]
   );
 

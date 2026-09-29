@@ -147,7 +147,7 @@ export function FloorObject({
               onMouseDown={(e) => e.stopPropagation()}
               onTouchStart={(e) => e.stopPropagation()}
             >
-              {actions?.()}
+              {actions?.({ toggleShape, data, allowShape })}
             </div>
           </div>
         )}

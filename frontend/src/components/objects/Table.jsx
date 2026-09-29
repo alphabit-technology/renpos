@@ -1,10 +1,8 @@
 import { FloorObject } from './FloorObject'
 import { useRestaurant } from '@/context/RestaurantContext.jsx'
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import {OrderManager} from "@c/order/OrderManager.jsx"
-import {OrderManagerExample} from "@c/order/OrderExample.jsx"
 import { ActionButton } from '@c/ui/ActionButton.jsx'
-import { debounce } from 'es-toolkit'
 
 import { Settings, Trash2, Square, Circle, User, Users, Utensils } from 'lucide-react'
 import { can, canOpenOrderManage } from '@/router/permissions';
@@ -13,8 +11,7 @@ import { useRooms } from '@/context/RoomsContext.jsx';
 
 export function Table({ table, onSelect }) {
   const [orderOpen, setOrderOpen] = useState(false);
-  const isRound = table.shape === 'Round'
-  const { editing, currentTable, callMethod, RM, POS, handleSetPOS, checkOpeningEntry } = useRestaurant()
+  const { editing, callMethod, RM } = useRestaurant()
 
   const handleSelect = async (e) => {
     editing && onSelect?.(e)
@@ -31,77 +28,9 @@ export function Table({ table, onSelect }) {
         return;
       } */
 
-      if(!await checkOpeningEntry()){
-        return
-      }
-
-      const _open = () => {
-        setOrderOpen(true);
-      }
-        if (RM.navigate_table) {
-          RM.navigate_table = null;
-          _open();
-          return;
-        }
-
-        return _open()
-
-        /* if (hasCustomer()) {
-          _open();
-          return
-        } */
-
-        setTimeout(() => {
-          const dialog = new frappe.ui.Dialog({
-            title: __('Table {0}', [table.description]),
-            fields: [
-              {
-                fieldtype: 'Column Break'
-              },
-              {
-                fieldtype: 'Link', label: __('Customer'),
-                fieldname: "customer",
-                options: "Customer",
-                default: table?.customer,
-                //get_query: () => {
-                //    return {
-                //        filters: {
-                //            "customer_group": RM.pos_profile.customer_group
-                //        }
-                //    }
-                //}
-              },
-              {
-                fieldtype: 'HTML', fieldname: "reservation"
-              },
-              {
-                fieldtype: 'Section Break'
-              },
-              {
-                fieldtype: 'Button', fieldname: "open_table", label: __('Open Table'), primary: 1,
-                click: () => {
-                  if (dialog.get_value("customer") === "") {
-                    frappe.msgprint(__("Please select a customer to open the table"));
-                    return;
-                  }
-
-                  frappe.db.set_value("Ren Table", table.name, "customer", dialog.get_value("customer")).then(() => {
-                    dialog.hide();
-                    _open();
-                  });
-                }
-              }
-            ]
-          });
-
-          Object.entries({ width: "100%", height: "50px", fontSize: "20px", fontWeight: "400" }).forEach(([key, value]) => {
-            dialog.get_field("open_table").input.style[key] = value;
-          });
-
-          dialog.show();
-
-          //Reservation.render(this.data.name, dialog.get_field("reservation").$wrapper);
-        }, 0)
+      // Taking orders doesn't need a cash register: each cashier opens
+      // their own register when charging (see PaymentPanel).
+      setOrderOpen(true);
     }
   }
 
@@ -110,16 +39,6 @@ export function Table({ table, onSelect }) {
       fields: ['name', 'color', 'shape', 'no_of_seats', 'minimum_seating', 'description']
     });
   }
-
-  const updateAttr = useCallback(
-    debounce((attr, value) => {
-      callMethod("Ren Table", data.name, "set_attr", {
-        args: { attr, value },
-        freeze: false
-      })
-    }, 0),
-    [table.name]
-  )
 
   const handleTableDelete = () => {
     callMethod("Ren Table", table.name, "delete")
@@ -166,7 +85,7 @@ export function Table({ table, onSelect }) {
           )}
         </>
       )}
-      actions={() => (
+      actions={({ toggleShape, data }) => (
         <>
         {can("table.write") ?
           <ActionButton
@@ -187,7 +106,7 @@ export function Table({ table, onSelect }) {
           {can("table.write") ?
           <ActionButton
             variant="primary"
-            icon={isRound ? Square : Circle}
+            icon={data.shape === 'Round' ? Square : Circle}
             onClick={(e) => { e.stopPropagation(); toggleShape() }}
             className="rounded-none"
           /> : <></>}

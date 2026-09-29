@@ -143,7 +143,7 @@ def set_default_process_status():
         ),
         dict(
             action="Sent", icon="fa fa-paper-plane-o", color="steelblue",
-            message="Whiting", action_message="Confirm", allows_to_edit_item="0"
+            message="Waiting", action_message="Confirm", allows_to_edit_item="0"
         ),
         dict(
             action="Processing", icon="fa fa-gear", color="#618685",

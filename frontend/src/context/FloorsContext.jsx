@@ -28,10 +28,8 @@ export function FloorsProvider({ children }) {
     }
   }, [currentFloor])
 
-  if(!RM.floors) return null;
-
   useEffect(() => {
-    setFloors(RM.floors)
+    if (RM?.floors) setFloors(RM.floors)
   }, [RM?.floors])
 
   useEffect(() => {
@@ -63,6 +61,8 @@ export function FloorsProvider({ children }) {
       return prev//[...prev, data];
     });
   }, [currentFloor?.name]);
+
+  if (!RM?.floors) return null;
 
   return (
     <FloorsContext.Provider value={{ 

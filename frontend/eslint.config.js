@@ -16,7 +16,7 @@ export default [
         // provided by Frappe Desk
         frappe: 'readonly', __: 'readonly', $: 'readonly', locals: 'readonly',
         cur_frm: 'readonly', MetaForm: 'readonly', RM: 'readonly',
-        __RM_BUILD__: 'readonly',
+        __RM_BUILD__: 'readonly', cur_dialog: 'readonly',
       },
     },
     ...js.configs.recommended,
@@ -27,6 +27,12 @@ export default [
       ...reactHooks.configs.flat.recommended.rules,
       'no-unused-vars': ['warn', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
       'react-refresh/only-export-components': 'off',
+      // React Compiler style rules: the code works; fix gradually
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/use-memo': 'warn',
+      'no-empty': ['warn', { allowEmptyCatch: true }],
     },
   },
 ]

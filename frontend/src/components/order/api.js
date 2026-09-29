@@ -193,6 +193,13 @@ const OrderAPI = {
    *
    * ENDPOINT: restaurant_management.api.order.divide_order
    */
+  /** Tables of the restaurant for the transfer dialog. */
+  getTransferTargets(orderName) {
+    return call("restaurant_management.api.order.get_transfer_targets", {
+      order_name: orderName,
+    });
+  },
+
   divideOrder(orderName, items) {
     return call("restaurant_management.api.order.divide_order", {
       order_name: orderName,
@@ -243,6 +250,18 @@ const OrderAPI = {
    *
    * ENDPOINT: restaurant_management.api.order.process_payment
    */
+  /**
+   * Totals exactly as the invoice will be (ERPNext taxes, rounding),
+   * enabled modes of payment and the cashier's register status.
+   *
+   * ENDPOINT: restaurant_management.api.order.get_payment_summary
+   */
+  getPaymentSummary(orderName) {
+    return call("restaurant_management.api.order.get_payment_summary", {
+      order_name: orderName,
+    });
+  },
+
   processPayment(orderName, payments) {
     return call("restaurant_management.api.order.process_payment", {
       order_name: orderName,
