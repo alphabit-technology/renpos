@@ -1,0 +1,49 @@
+/* ── Add these to your existing :root (light theme) ── */
+:root {
+  --radius: 0.5rem;
+  --foreground: #171717;
+  --color-foreground: #fafafa;
+
+  /* Add these if missing */
+  --background: #ffffff;
+  --card: #f8f8f8;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: oklch(0.55 0.2 220);
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0f0;
+  --secondary-foreground: #171717;
+  --muted: #f0f0f0;
+  --muted-foreground: #737373;
+  --accent: #f0f0f0;
+  --accent-foreground: #171717;
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: oklch(0.55 0.2 220);
+}
+
+/* ── Your existing dark theme (no changes needed) ── */
+[data-theme="dark"] {
+  --background: #171717;
+  --foreground: #fafafa;
+  --card: #1c1c1c;
+  --card-foreground: #fafafa;
+  --popover: #171717;
+  --popover-foreground: #fafafa;
+  --primary: oklch(0.65 0.2 220);
+  --primary-foreground: #ffffff;
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --accent: #262626;
+  --accent-foreground: #fafafa;
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: #ffffff;
+  --border: #2e2e2e;
+  --input: #2e2e2e;
+  --ring: oklch(0.65 0.2 220);
+}

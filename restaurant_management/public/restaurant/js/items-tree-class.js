@@ -2,7 +2,6 @@ class ItemsTree {
   items_manage = null;
 
   constructor({ wrapper, order_manage, item_template, onSelect, in_menu }) {
-    this.item_template = item_template;
     this.in_menu = in_menu; 
     this.onSelect = onSelect;
     this.wrapper = wrapper;

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Management</title>
+  <style>
+    #dev-toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: #1a1a2e;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 9999;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    #dev-toolbar .dev-title {
+      color: #888;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #dev-toolbar .dev-title span {
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    #dev-toolbar .dev-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #dev-toolbar button {
+      background: #2d2d44;
+      border: 1px solid #444;
+      color: #ccc;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+
+    #dev-toolbar button:hover {
+      background: #3d3d5c;
+      color: #fff;
+    }
+
+    #dev-toolbar button.active {
+      background: #10b981;
+      border-color: #10b981;
+      color: #fff;
+    }
+
+    #dev-toolbar .theme-indicator {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #333;
+      color: #888;
+    }
+
+    #dev-toolbar .theme-indicator.dark {
+      background: #1e293b;
+      color: #60a5fa;
+    }
+
+    #dev-toolbar .theme-indicator.light {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    /* App container */
+    #restaurant-root {
+      position: fixed;
+      top: 35px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+  
+  body {
+    background: var(--bg-background);
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+  }
+  
+  </style>
+</head>
+<body>
+  <div id="dev-toolbar">
+    <div class="dev-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <span>DEV MODE</span>
+      Restaurant Management
+    </div>
+    <div class="dev-actions">
+      <span id="theme-indicator" class="theme-indicator dark">DARK</span>
+      <button id="toggle-theme" onclick="toggleTheme()">
+        <svg id="theme-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        Toggle Theme
+      </button>
+      <button onclick="location.reload()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        Reload
+      </button>
+    </div>
+  </div>
+  <div id="restaurant-root"/>
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const indicator = document.getElementById('theme-indicator');
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      
+      if (isDark) {
+        html.setAttribute('data-theme', 'light');
+        html.setAttribute('data-theme-mode', 'light');
+        indicator.textContent = 'LIGHT';
+        indicator.className = 'theme-indicator light';
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        html.setAttribute('data-theme-mode', 'dark');
+        indicator.textContent = 'DARK';
+        indicator.className = 'theme-indicator dark';
+      }
+      
+      // Persist preference
+      localStorage.setItem('dev-theme', isDark ? 'light' : 'dark');
+    }
+
+    // Load saved theme preference
+    (function() {
+      const savedTheme = localStorage.getItem('dev-theme') || 'dark';
+      const html = document.documentElement;
+      const indicator = document.getElementById('theme-indicator');
+      
+      html.setAttribute('data-theme', savedTheme);
+      html.setAttribute('data-theme-mode', savedTheme);
+      
+      if (savedTheme === 'light') {
+        indicator.textContent = 'LIGHT';
+        indicator.className = 'theme-indicator light';
+      }
+    })();
+
+    // Mock Frappe API
+    window.frappe = {
+      call: async function(options) {
+        const method = typeof options === 'string' ? options : options.method;
+        const args = options.args || {};
+        
+        console.log('[Frappe Mock] Call:', method, args);
+        
+        // Simulate API delay
+        await new Promise(r => setTimeout(r, 100));
+        
+        return { message: null };
+      },
+      
+      xcall: async function(method, args = {}) {
+        const response = await this.call({ method, args });
+        return response.message;
+      },
+
+      realtime: {
+        on: function(event, callback) {
+          console.log('[Frappe Mock] Realtime subscribed:', event);
+        },
+        off: function(event, callback) {
+          console.log('[Frappe Mock] Realtime unsubscribed:', event);
+        }
+      },
+
+      session: {
+        user: 'Administrator'
+      },
+
+      db: {
+        get_value: async function(doctype, name, field) {
+          console.log('[Frappe Mock] get_value:', doctype, name, field);
+          return {};
+        },
+        set_value: async function(doctype, name, field, value) {
+          console.log('[Frappe Mock] set_value:', doctype, name, field, value);
+          return {};
+        }
+      }
+    };
+
+    // __ translation function mock
+    window.__ = function(text) {
+      return text;
+    };
+  </script>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

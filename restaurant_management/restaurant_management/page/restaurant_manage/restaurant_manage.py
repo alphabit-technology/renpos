@@ -1,5 +1,8 @@
 from __future__ import unicode_literals
 import frappe
+from restaurant_management.api.guards import require_restaurant_user
+from frappe import _
+from frappe.utils import cint
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_item_groups
 from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_stock_availability
 
@@ -29,39 +32,34 @@ class RestaurantManage:
         return (False)
 
     @staticmethod
-    def get_rooms():
+    def get_floors():
         restaurant_settings = frappe.get_single("Restaurant Settings")
-        filters = {
-            "company": frappe.defaults.get_user_default('company'),
-            "type": "Room"
+        return restaurant_settings.get_floors()
+        """ filters = {
+            "company": frappe.defaults.get_user_default('company')
         }
 
         if not restaurant_settings.user_has_admin_role():
-            rooms_enabled = restaurant_settings.restaurant_access()
+            floors_enabled = restaurant_settings.restaurant_access("Ren Floor")
 
-            filters["name"] = ("in", rooms_enabled)
+            filters["name"] = ("in", floors_enabled)
 
-        rooms = frappe.get_all("Restaurant Object",
+        floors = frappe.get_all("Ren Floor",
                                 "name,description", filters=filters)
 
-        for room in rooms:
-            t = frappe.get_doc("Restaurant Object", room.name)
-            room["orders_count"] = t.orders_count
-
-        return rooms
+        return floors """
 
     @staticmethod
-    def add_room():
-        room = frappe.new_doc("Restaurant Object")
-        room.type = "Room"
-        room.description = f"R {(RestaurantManage().count_roms() + 1)}"
-        room.save()
+    def add_floor():
+        floor = frappe.new_doc("Reen Floor")
+        floor.description = f"R {(RestaurantManage().count_floors() + 1)}"
+        floor.save()
 
-        return room
+        return floor
 
     @staticmethod
-    def count_roms():
-        return frappe.db.count("Restaurant Object", filters={"type": "Room"})
+    def count_floors():
+        return frappe.db.count("Ren Floor")
 
     @staticmethod
     def listener(data):
@@ -121,21 +119,24 @@ class RestaurantManage:
 
 
 @frappe.whitelist()
-def get_rooms():
-    return RestaurantManage().get_rooms()
+def get_floors():
+    require_restaurant_user()
+    return RestaurantManage().get_floors()
 
 
 @frappe.whitelist()
-def add_room(client=None):
-    frappe.publish_realtime("check_rooms", dict(
+def add_floor(client=None):
+    require_restaurant_user()
+    frappe.publish_realtime("check_floors", dict(
         client=client,
-        current_room=RestaurantManage().add_room().name,
-        rooms=RestaurantManage().get_rooms()
+        current_floor=RestaurantManage().add_floor().name,
+        floors=RestaurantManage().get_floors()
     ))
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_work_station():
+    require_restaurant_user()
     work_stations = frappe.db.get_all("Work Station")
     work_station = frappe.get_doc("Work Station", work_stations[0].name)
     return {
@@ -146,12 +147,14 @@ def get_work_station():
 
 @frappe.whitelist()
 def listeners(args):
+    require_restaurant_user()
     import json
     return RestaurantManage().listener(json.loads(args))
 
 
 @frappe.whitelist()
 def get_settings_data():
+    require_restaurant_user()
     restaurant_settings = frappe.get_single("Restaurant Settings")
     return restaurant_settings.settings_data()
 
@@ -182,6 +185,7 @@ def debug_data(data):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_customer_branches(doctype, txt, searchfield, start, page_len, filters):
+	require_restaurant_user()
 	link_name = filters.get('link_name')
 	return frappe.db.sql("""
 		select `tabAddress`.branch from `tabAddress`, `tabDynamic Link`
@@ -194,6 +198,7 @@ def get_customer_branches(doctype, txt, searchfield, start, page_len, filters):
 
 @frappe.whitelist()
 def group_items_count():
+    require_restaurant_user()
     groups = frappe.db.get_all("Item Group", fields=["name", "lft", "rgt"], order_by="lft asc")
 
     items = []
@@ -211,6 +216,7 @@ def group_items_count():
 
 @frappe.whitelist()
 def get_items(start, page_length, price_list, item_group, pos_profile, item_type=None, search_value="", force_parent=0, in_menu=0):
+    require_restaurant_user()
     data = dict()
     result = []
 
@@ -249,9 +255,12 @@ def get_items(start, page_length, price_list, item_group, pos_profile, item_type
         bin_join_selection = ", `tabBin` bin"
         bin_join_condition = "AND bin.warehouse = %(warehouse)s AND bin.item_code = item.name AND bin.actual_qty > 0"
 
-    item_group = "='%s'" % item_group if force_parent == '1' else "in (SELECT name FROM `tabItem Group` WHERE lft >= %s AND rgt <= %s)" % (lft, rgt)
+    # Values below go into SQL text, so they are escaped / cast here.
+    start, page_length = cint(start), cint(page_length)
+    item_group = "= %s" % frappe.db.escape(item_group) if str(force_parent) == '1' \
+        else "in (SELECT name FROM `tabItem Group` WHERE lft >= %s AND rgt <= %s)" % (cint(lft), cint(rgt))
 
-    item_type_condition = "AND item_type = '%s'" % item_type if item_type and len(item_type) > 0 else ""
+    item_type_condition = "AND item_type = %s" % frappe.db.escape(item_type) if item_type else ""
     items_data = frappe.db.sql("""
 		SELECT
 			item.name AS item_code,
@@ -327,6 +336,7 @@ def get_items(start, page_length, price_list, item_group, pos_profile, item_type
 @frappe.whitelist()
 def search_serial_or_batch_or_barcode_number(search_value):
 	# search barcode no
+	require_restaurant_user()
 	barcode_data = frappe.db.get_value('Item Barcode', {'barcode': search_value}, [
 	                                   'barcode', 'parent as item_code'], as_dict=True)
 	if barcode_data:
@@ -358,12 +368,16 @@ def get_item_group_condition(pos_profile):
 	cond = "and 1=1"
 	item_groups = get_item_groups(pos_profile)
 	if item_groups:
-		cond = "and item.item_group in (%s)" % (', '.join(['%s']*len(item_groups)))
+		cond = "and item.item_group in (%s)" % ', '.join(frappe.db.escape(g) for g in item_groups)
 
-	return cond % tuple(item_groups)
+	return cond
 
 @frappe.whitelist()
 def set_item_in_menu(item_code, in_menu):
+  require_restaurant_user()
+  from restaurant_management.api.guards import is_manager
+  if not is_manager():
+    raise frappe.PermissionError(_("Only a Restaurant Manager can change the menu"))
   pos_data = pos_profile_data()
 
   if not pos_data.get("has_pos"):

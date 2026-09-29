@@ -1,0 +1,47 @@
+{
+  "name": "Restaurant Permission Exception",
+  "module": "Restaurant Management",
+  "doctype": "DocType",
+  "document_type": "",
+  "engine": "InnoDB",
+  "is_tree": 0,
+  "istable": 1,
+  "editable_grid": 1,
+  "track_changes": 0,
+  "fields": [
+    {
+      "fieldname": "user",
+      "fieldtype": "Link",
+      "label": "User",
+      "options": "User",
+      "in_list_view": 1,
+      "columns": 4
+    },
+    {
+      "fieldname": "role",
+      "fieldtype": "Link",
+      "label": "Role",
+      "options": "Role",
+      "in_list_view": 1,
+      "columns": 3,
+      "description": "Apply exception to all users with this role"
+    },
+    {
+      "fieldname": "bypass_table_restriction",
+      "fieldtype": "Check",
+      "label": "Bypass Table Restriction",
+      "default": "1",
+      "in_list_view": 1,
+      "columns": 2
+    },
+    {
+      "fieldname": "bypass_order_restriction",
+      "fieldtype": "Check",
+      "label": "Bypass Order Restriction",
+      "default": "1",
+      "in_list_view": 1,
+      "columns": 2
+    }
+  ],
+  "permissions": []
+}

@@ -14,7 +14,8 @@
   {
    "fieldname": "pos_profile_user",
    "fieldtype": "Link",
-   "label": "POS Profile",
+   "in_list_view": 1,
+   "label": "POS Profile User",
    "options": "POS Profile User",
    "unique": 1
   },
@@ -22,7 +23,8 @@
    "fetch_from": "pos_profile_user.user",
    "fieldname": "user",
    "fieldtype": "Read Only",
-   "label": "User"
+   "label": "User",
+   "permlevel": 1
   },
   {
    "description": "Define the permissions to which the user has access. If you select a room, the user will have access to the Tables and Production Centers that correspond to this room, if you exclusively select tables or production centers, the user will have access only to the selected objects.",
@@ -34,7 +36,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-04-15 15:44:37.413786",
+ "modified": "2026-02-20 13:53:38.362344",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Permission Manage",
@@ -66,6 +68,8 @@
    "write": 1
   }
  ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

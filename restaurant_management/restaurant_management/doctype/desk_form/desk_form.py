@@ -10,8 +10,8 @@ from __future__ import unicode_literals
 import json
 import os
 
-from six import iteritems
-from six.moves.urllib.parse import urlencode
+
+from urllib.parse import urlencode
 
 import frappe
 from frappe import _, scrub
@@ -208,11 +208,9 @@ def accept(desk_form, data, doc_name=None):
 
 		doc.insert(ignore_permissions=True, ignore_mandatory=ignore_mandatory)
 	else:
-		if has_desk_form_permission(doctype, doc.name, "write"):
-			doc.save(ignore_permissions=True)
-		else:
-			# only if permissions are present
-			doc.save()
+		if not has_desk_form_permission(doctype, doc.name, "write"):
+			raise frappe.PermissionError(_("Not permitted to update {0}").format(doc.name))
+		doc.save(ignore_permissions=True)
 
 	frappe.flags.desk_form_doc = doc
 
@@ -223,7 +221,11 @@ def has_desk_form_permission(doctype, name, ptype='read'):
   if frappe.session.user=="Guest":
     return False
 
-  return True
+  if frappe.has_permission(doctype, ptype, name):
+    return True
+
+  # Like Web Forms: users may edit documents they own.
+  return frappe.db.get_value(doctype, name, "owner") == frappe.session.user
 
 @frappe.whitelist(allow_guest=False)
 def get_desk_form_filters(desk_form_name):
@@ -250,6 +252,8 @@ def get_doc(doctype, doc_name=None):
 	name = frappe.db.get_value(doctype, {"name": doc_name}) if doc_name else None
 	
 	if name:
+		if not has_desk_form_permission(doctype, name, "read"):
+			raise frappe.PermissionError(_("Not permitted to read {0}").format(name))
 		doc = frappe.get_doc(doctype, name)
 		doc.new = False
 	else:
@@ -340,9 +344,10 @@ def get_link_options(desk_form_name, doctype, allow_read_on_all_link_options=Fal
 	if desk_form_doc.login_required:
 		# check if frappe session user is not guest or admin
 		if frappe.session.user != 'Guest':
-			doctype_validated = True
+			# only doctypes linked from this form's fields
+			doctype_validated = any(field.options == doctype for field in desk_form_doc.desk_form_fields)
 
-			if not allow_read_on_all_link_options:
+			if not allow_read_on_all_link_options or not frappe.has_permission(doctype, "read"):
 				limited_to_user   = True
 
 	else:

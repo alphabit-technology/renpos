@@ -149,7 +149,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-19 17:04:12.169553",
+ "modified": "2026-02-16 14:47:38.803993",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Restaurant Settings",
@@ -177,6 +177,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

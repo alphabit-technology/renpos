@@ -6,3 +6,5 @@ tags
 restaurant_management/docs/current
 .idea
 /.idea/
+__pycache__/
+node_modules/

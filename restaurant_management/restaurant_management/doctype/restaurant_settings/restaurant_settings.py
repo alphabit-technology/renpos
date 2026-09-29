@@ -33,6 +33,22 @@ class RestaurantSettings(Document):
 
         return (False)
 
+    def get_floors(self):
+        #restaurant_settings = frappe.get_single("Restaurant Settings")
+        filters = {
+            "company": frappe.defaults.get_user_default('company')
+        }
+
+        if not self.user_has_admin_role():
+            floors_enabled = self.restaurant_access("Ren Floor")
+
+            filters["name"] = ("in", floors_enabled)
+
+        floors = frappe.get_all("Ren Floor",
+                                "name,description", filters=filters)
+
+        return floors
+
     def settings_data(self):
         company = self.company()
         profile = frappe.db.get_value(
@@ -42,36 +58,40 @@ class RestaurantSettings(Document):
                                            "company": company})
         pos = self.pos_profile_data()
 
+        def get_doc_permissions(d):
+            return frappe.permissions.get_doc_permissions(frappe.new_doc(d))
+
         if pos.get("has_pos"):
-          menu = frappe.db.get_value("Restaurant Menu", pos.get("pos").restaurant_menu, "name")
-          menu_items = frappe.get_all("Restaurant Menu Item", filters=dict(
-              parent=menu), fields=["item"]
-          )
-          groups_of_items = frappe.get_all("Item", "item_group", filters=dict(
-              item_code=("in", [item.item for item in menu_items]))
-          )
+            menu = frappe.db.get_value("Restaurant Menu", pos.get("pos").restaurant_menu, "name")
+            menu_items = frappe.get_all("Restaurant Menu Item", filters=dict(
+                parent=menu), fields=["item"]
+            )
+            groups_of_items = frappe.get_all("Item", "item_group", filters=dict(
+                item_code=("in", [item.item for item in menu_items]))
+            )
 
-          parent_item_groups = frappe.get_all("Item Group", "parent_item_group",
-            filters=dict(name=("in", [item.item_group for item in groups_of_items]))
-          )
+            parent_item_groups = frappe.get_all("Item Group", "parent_item_group",
+              filters=dict(name=("in", [item.item_group for item in groups_of_items]))
+            )
 
-          items_groups = [item.item_group for item in groups_of_items] + [item.parent_item_group for item in parent_item_groups]
+            items_groups = [item.item_group for item in groups_of_items] + [item.parent_item_group for item in parent_item_groups]
         else :
-          menu = None
-          menu_items = []
-          items_groups = []
+            menu = None
+            menu_items = []
+            items_groups = []
 
         return dict(
             pos=pos,
-            permissions=dict(
-                invoice=frappe.permissions.get_doc_permissions(
-                    frappe.new_doc("Sales Invoice")),
-                order=frappe.permissions.get_doc_permissions(
-                    frappe.new_doc("Table Order")),
-                restaurant_object=frappe.permissions.get_doc_permissions(
-                    frappe.new_doc("Restaurant Object")),
-                rooms_access=self.restaurant_access()
-            ),
+            permissions={
+                'invoice': get_doc_permissions("Sales Invoice"),
+                'order': get_doc_permissions("Table Order"),
+                'Ren Floor': get_doc_permissions("Ren Floor"),
+                'Ren Room': get_doc_permissions("Ren Room"),
+                'Ren Table': get_doc_permissions("Ren Table"),
+                'Ren Station': get_doc_permissions("Ren Station"),
+                'Restaurant Menu': get_doc_permissions("Restaurant Menu"),
+                'rooms_access': self.restaurant_access()
+            },
             restrictions=self,
             exceptions=[
                 item for item in self.restaurant_exceptions if item.role_profile == profile],
@@ -85,12 +105,14 @@ class RestaurantSettings(Document):
             menu=menu,
             menu_items=menu_items,
             items_groups=items_groups,
+            floors=self.get_floors()
         )
 
     def get_crm_settings(self):
         return dict(
-            crm_room=self.restaurant_access("Room", dict(is_crm=1)),
-            crm_table=self.restaurant_access("Table", dict(is_crm=1)),
+            crm_floor=self.restaurant_access("Ren Floor", dict(is_crm=1)),
+            crm_room=self.restaurant_access("Ren Room", dict(is_crm=1)),
+            crm_table=self.restaurant_access("Ren Table", dict(is_crm=1))
         )
 
     def pos_profile_data(self):
@@ -98,8 +120,7 @@ class RestaurantSettings(Document):
 
         return dict(
             has_pos=pos_profile_name is not None,
-            pos=frappe.get_doc(
-                "POS Profile", pos_profile_name) if pos_profile_name is not None else None
+            pos=frappe.get_doc("POS Profile", pos_profile_name) if pos_profile_name is not None else None
         )
 
     def get_order_item_editor_form(self):
@@ -112,55 +133,131 @@ class RestaurantSettings(Document):
         return pos_profile.name if pos_profile else None
 
     def has_access_to_room(self, room):
-        return len(self.restaurant_access("Room", dict(object_name=room))) > 0
+        return len(self.restaurant_access("Ren Room", dict(object_name=room))) > 0
 
-    def restaurant_access(self, type="Room", more_filters=None):
+    def restaurant_access(self, target_type=None, extra_filters=None):
         pos_profile_name = self.get_current_pos_profile_name()
+        permission_parent = frappe.db.get_value("POS Profile User",
+            filters=dict(
+                parenttype="POS Profile",
+                parent=pos_profile_name,
+                user=frappe.session.user
+            ),
+            fieldname="name"
+        )
 
-        if pos_profile_name is not None:
-            permission_parent = frappe.db.get_value("POS Profile User",
-                                                    filters=dict(
-                                                        parenttype="POS Profile",
-                                                        parent=pos_profile_name,
-                                                        user=frappe.session.user
-                                                    ),
-                                                    fieldname="name"
-                                                    )
+        filters = dict(
+            parenttype="Restaurant Permission Manage",
+            parent=permission_parent,
+        )
+        if extra_filters:
+            filters.update(extra_filters)
 
-            permissions_filter = dict(
-                parenttype="Restaurant Permission Manage",
-                parent=permission_parent,
-            )
+        permissions = frappe.get_all("Restaurant Permission",
+            fields=["object_type", "object_name"],
+            filters=filters
+        ) if permission_parent else []
 
-            if more_filters is not None:
-                permissions_filter.update(more_filters)
+        # ... rest of the method
+        if not permissions:
+            return set()
 
-            restaurant_permissions = frappe.db.get_all("Restaurant Permission",
-                                                        "object_name",
-                                                        filters=permissions_filter
-                                                        ) if permission_parent else []
+        # 3. If no target type, return raw object names
+        if not target_type:
+            return set(p.object_name for p in permissions)
 
-            if type == 'Room':
-                restaurant_permissions = frappe.get_all("Restaurant Object",
-                                                         ("room", "name", "type"),
-                                                         filters=dict(
-                                                             name=(
-                                                                 "in", [item.object_name for item in restaurant_permissions])
-                                                         )
-                                                         )
+        # 4. Group by type
+        granted = {}
+        for p in permissions:
+            granted.setdefault(p.object_type, set()).add(p.object_name)
 
-                rooms_for_table = (
-                    item.room for item in restaurant_permissions if item.type != "Room")
-                rooms_for_room = (
-                    item.name for item in restaurant_permissions if item.type == "Room")
+        # 5. Resolve cascade based on what we're asking for
+        return self._resolve_access(target_type, granted)
 
-                return set(rooms_for_table).union(set(rooms_for_room))
 
-            return set((item.object_name for item in restaurant_permissions))
+    def _resolve_access(self, target_type, granted):
+        """
+        Resolve hierarchical permissions.
+        granted = { 'Ren Floor': {'FLOOR-1'}, 'Ren Room': {'ROOM-2'}, 'Ren Table': {'TABLE-5'} }
+        """
+        result = set()
 
-        return []
+        floors = granted.get("Ren Floor", set())
+        rooms = granted.get("Ren Room", set())
+        tables = granted.get("Ren Table", set())
+        stations = granted.get("Ren Station", set())
+
+        if target_type == "Ren Floor":
+            result.update(floors)
+            if rooms:
+                result.update(
+                    frappe.get_all("Ren Room", pluck="floor",
+                        filters={"name": ("in", list(rooms))})
+                )
+            if tables:
+                rooms_from_tables = frappe.get_all("Ren Table", pluck="room",
+                    filters={"name": ("in", list(tables))})
+                if rooms_from_tables:
+                    result.update(
+                        frappe.get_all("Ren Room", pluck="floor",
+                            filters={"name": ("in", rooms_from_tables)})
+                    )
+            # Floors that contain granted stations
+            if stations:
+                result.update(
+                    frappe.get_all("Ren Station", pluck="floor",
+                        filters={"name": ("in", list(stations))})
+                )
+
+        elif target_type == "Ren Room":
+            # Direct room assignments
+            result.update(rooms)
+            # All rooms on granted floors
+            if floors:
+                result.update(
+                    frappe.get_all("Ren Room", pluck="name",
+                        filters={"floor": ("in", list(floors))})
+                )
+            # Rooms that contain granted tables (for visibility, not full access)
+            if tables:
+                result.update(
+                    frappe.get_all("Ren Table", pluck="room",
+                        filters={"name": ("in", list(tables))})
+                )
+
+        elif target_type == "Ren Table":
+            # Direct table assignments
+            result.update(tables)
+            # All tables in granted rooms
+            if rooms:
+                result.update(
+                    frappe.get_all("Ren Table", pluck="name",
+                        filters={"room": ("in", list(rooms))})
+                )
+            # All tables on granted floors (floor → rooms → tables)
+            if floors:
+                rooms_on_floors = frappe.get_all("Ren Room", pluck="name",
+                    filters={"floor": ("in", list(floors))})
+                if rooms_on_floors:
+                    result.update(
+                        frappe.get_all("Ren Table", pluck="name",
+                            filters={"room": ("in", rooms_on_floors)})
+                    )
+
+        elif target_type == "Ren Station":
+            # Direct station assignments
+            result.update(stations)
+            # All stations on granted floors
+            if floors:
+                result.update(
+                    frappe.get_all("Ren Station", pluck="name",
+                        filters={"floor": ("in", list(floors))})
+                )
+
+        return result
 
 
 @frappe.whitelist()
 def reinstall():
+    frappe.only_for("System Manager")
     return install.after_install()

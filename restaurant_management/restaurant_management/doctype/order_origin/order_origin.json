@@ -6,25 +6,19 @@
  "engine": "InnoDB",
  "field_order": [
   "origin",
-  "type",
   "description"
  ],
  "fields": [
-  {
-   "fetch_from": "origin.type",
-   "fieldname": "type",
-   "fieldtype": "Read Only",
-   "label": "Type"
-  },
   {
    "fieldname": "origin",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Origin",
-   "options": "Restaurant Object",
+   "options": "Ren Room",
    "reqd": 1
   },
   {
+   "allow_in_quick_entry": 1,
    "fetch_from": "origin.description",
    "fieldname": "description",
    "fieldtype": "Read Only",
@@ -35,13 +29,15 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-12-18 20:22:00.773873",
+ "modified": "2026-02-12 03:14:24.775349",
  "modified_by": "Administrator",
  "module": "Restaurant Management",
  "name": "Order Origin",
  "owner": "Administrator",
  "permissions": [],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }

@@ -41,7 +41,7 @@ class RestaurantObject(Document):
         self._on_update()
 
     def _on_update(self):
-        data = self.get_data() if self.type == "Room" else self.get_objects(self.name)
+        data = self.get_objects(self.name)
         frappe.publish_realtime(self.name, dict(
             action="Update",
             data=data if self.type == "Room" else data["tables"][0] if len(
@@ -170,10 +170,10 @@ class RestaurantObject(Document):
         else:
             filters["name"] = name
 
-        tables = frappe.get_all("Restaurant Object", "name", filters=filters)
+        tables = frappe.get_all("Ren Table", "name", filters=filters)
 
         for table in tables:
-            data = frappe.get_doc("Restaurant Object", table.name).get_data()
+            data = frappe.get_doc("Ren Table", table.name).get_data()
             for prop in data:
                 table[prop] = data[prop]
 
@@ -224,7 +224,7 @@ class RestaurantObject(Document):
             self.add_order(None, customer)
             self.reload()"""
 
-        orders = frappe.get_list("Table Order", fields=["name", "customer"], filters={
+        orders = frappe.get_all("Table Order", fields=["name", "customer"], filters={
             "table" if name is None else "name": name if name is not None else self.name,
             "show_in_pos": 1,
             "status": ("not in", ["Cancelled", "Invoiced"])
@@ -283,9 +283,9 @@ class RestaurantObject(Document):
         import random
 
         objects_count = frappe.db.count(
-            "Restaurant Object", filters={"room": self.name})
+            "Ren Table", filters={"room": self.name})
 
-        table = frappe.new_doc("Restaurant Object")
+        table = frappe.new_doc("Ren Table")
 
         zIndex = objects_count + 60
         left = objects_count * 25 + (0 if t == 'Table' else 200)
@@ -320,7 +320,7 @@ class RestaurantObject(Document):
             ))
 
     def count_objects(self, t):
-        return frappe.db.count("Restaurant Object", filters={
+        return frappe.db.count("Ren Table", filters={
             "room": self.name, "type": t
         })
 
@@ -526,13 +526,8 @@ class RestaurantObject(Document):
 
         return items_groups
 
-    def set_style(self, data, shape=None):
-        _data = data
-        if shape and self.type == "Production Center":
-            _data = "Square"
-
-        frappe.db.set_value("Restaurant Object", self.name,
-                            "shape" if shape else 'data_style', _data)
+    def set_attr(self, attr, value):
+        frappe.db.set_value("Restaurant Object", self.name, attr, value)
         self._on_update()
 
     @ property

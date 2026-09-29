@@ -16,8 +16,13 @@ status_attending = "Attending"
 
 class TableOrder(Document):
     synchronize_data = None
-    def before_save(self):
-        if self.synchronize_data:
+    def after_delete(self):
+        self._table.synchronize()
+        #self.synchronize(dict(action="Delete", status=["Deleted"]))
+
+    def on_change(self):
+        self._table.synchronize()
+        """ if self.synchronize_data:
             self.synchronize(self.synchronize_data)
         else:
             self.synchronize(dict(status=self.status))
@@ -30,7 +35,7 @@ class TableOrder(Document):
         entry_items = self.items_list()
 
         if len(entry_items) > 0:
-            self.calculate_order(entry_items)
+            self.calculate_order(entry_items) """
 
     def notify_status(self):
         last_status = frappe.db.get_value("Table Order", self.name, "status")
@@ -87,7 +92,7 @@ class TableOrder(Document):
 
     @property
     def _table(self):
-        return frappe.get_doc("Restaurant Object", self.table)
+        return frappe.get_doc("Ren Table", self.table)
 
     def divide_template(self):
         return frappe.render_template(
@@ -98,7 +103,7 @@ class TableOrder(Document):
             })
 
     def get_restaurant(self):
-        table = frappe.get_doc("Restaurant Object", self.table)
+        table = frappe.get_doc("Ren Table", self.table)
         return frappe.db.get_value('Restaurant', table._restaurant)
 
     def divide(self, items, client):
@@ -220,7 +225,7 @@ class TableOrder(Document):
 
     def transfer(self, table, client):
         last_table = self._table
-        new_table = frappe.get_doc("Restaurant Object", table)
+        new_table = frappe.get_doc("Ren Table", table)
 
         # last_table.validate_user()
         last_table_name = self.table
@@ -630,7 +635,7 @@ class TableOrder(Document):
                 amount=self.amount,
                 owner=self.owner,
                 dinners=self.dinners,
-                process_status_data=self._table.process_status_data(self),
+                #process_status_data=self._table.process_status_data(self),
                 show_in_pos=self.show_in_pos,
                 delivery_address=self.get_delivery_address(self.address)["address"],
                 notes=self.notes,
@@ -680,7 +685,7 @@ class TableOrder(Document):
                 row["order_name"] = item.parent
                 row["entry_name"] = item.name
                 row["short_name"] = short_name
-                row["process_status_data"] = table.process_status_data(item)
+                #row["process_status_data"] = table.process_status_data(item)
                 row["name"] = item.identifier
                 row["order"] = short_name
                 row["table_description"] = self.table_info
@@ -753,6 +758,3 @@ class TableOrder(Document):
                     serial_no=item.serial_no,
                 ))
         self.save()
-
-    def after_delete(self):
-        self.synchronize(dict(action="Delete", status=["Deleted"]))

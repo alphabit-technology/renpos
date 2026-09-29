@@ -25,10 +25,10 @@ custom_fields = {
         restaurant_settings=dict(
             label="Restaurant Settings", fieldtype="Section Break", insert_after="applicable_for_users"
         ),
-        crm_room=dict(label="CRM Room", fieldtype="Link", options="Restaurant Object", insert_after="restaurant_settings"),
+        crm_room=dict(label="CRM Room", fieldtype="Link", options="Ren Room", insert_after="restaurant_settings"),
         column_break_1=dict(fieldtype="Column Break", insert_after="crm_room"), 
-        crm_table=dict(label="CRM Table", fieldtype="Link", read_only=1, options="Restaurant Object", insert_after="column_break_1"),
-        restaurant_menu=dict(label="Restaurant Menu", fieldtype="Link", options="Restaurant Menu", insert_after="company"),
+        crm_table=dict(label="CRM Table", fieldtype="Link", read_only=1, options="Ren Table", insert_after="column_break_1"),
+        ren_restaurant=dict(label="Restaurant", fieldtype="Link", options="Ren Restaurant", insert_after="company"),
     ),
     "POS Invoice Item": dict(
         identifier=dict(label="Identifier", fieldtype="Data"),
@@ -45,6 +45,7 @@ custom_fields = {
     ),
     "Item Group": dict(
         icon=dict(label="Icon", fieldtype="Data"),
+        color=dict(label="Color", fieldtype="Color"),
     ),
     "Item": dict(
         customizable=dict(label="Customizable", fieldtype="Section Break", insert_after="description", collapsible=1),
@@ -65,7 +66,7 @@ fields_not_needed = ['parent', 'parenttype', 'restaurant_permissions', 'restaura
 fields_has_changed = ['cuisine']
 
 def after_install():
-    create_desk_forms()
+    #create_desk_forms()
     clear_custom_fields()
     set_custom_fields()
     set_custom_scripts()
@@ -254,36 +255,36 @@ frappe.ui.form.on('POS Profile', {
 });
 
 frappe.ui.form.on('POS Profile User', {
-    restaurant_permission(frm, cdt, cdn) {
-        if(cdn.includes('new')){
-            frappe.show_alert(__("Save the record before assigning permissions"));
-            return;
-        }
-        
-        new DeskForm({
-            form_name: 'Restaurant Permission Manage',
-            doc_name: cdn,
-            callback: (self) => {
-                self.hide();
-            },
-            title: __(`Restaurant Permissions`),
-            field_properties: {
-                pos_profile_user: {
-                  default: cdn  
-                },
-                'restaurant_permission.object_name': {
-                    "get_query": () => {
-                        return {
-                            filters: [
-                                ["company", "=", frm.doc.company],
-                    			//['type', '!=', 'Room'],
-                    		]
-                        }
-                    }
-                }
-            }
-        });
+  restaurant_permission(frm, cdt, cdn) {
+    if(cdn.includes('new')){
+      frappe.show_alert(__("Save the record before assigning permissions"));
+      return;
     }
+    
+    const row = locals[cdt][cdn]; 
+    MetaForm.save('Restaurant Permission Manage', cdn, {
+      defaults: {
+        pos_profile_user: cdn,
+        user: row.user
+      },
+      fieldProperties: {
+        'restaurant_permissions.object_name': {
+          get_query: function (e) {
+            const doctype = e.object_type;
+            if (!doctype) return;
+
+            return {
+              doctype: doctype,
+              filters: [
+                ['company', '=', frappe.defaults.get_user_default("company")]
+              ]
+            };
+          }
+        }
+      },
+      onSave: () => frm.reload_doc(),
+    });
+  }
 });"""
         ),
         "Customer": dict(

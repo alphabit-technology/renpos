@@ -13,7 +13,7 @@ app_email = "qubitcore.io@gmail.com"
 app_license = "MIT"
 source_link = "https://github.com/alphabit-technology/erpnext-restaurant"
 
-doc_events = {
+""" doc_events = {
     "POS Profile": {
         "on_create": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data",
         "on_update": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data"
@@ -22,13 +22,13 @@ doc_events = {
         "on_create": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data",
         "on_update": "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage.set_settings_data"
     },
-}
+} """
 
-app_include_css = [
+""" app_include_css = [
 	"/assets/restaurant_management/helper/css/desk-form.css",
   "/assets/restaurant_management/helper/css/custom.css",
   "/assets/restaurant_management/helper/css/num-pad.css",
-]
+] """
 
 after_migrate = "restaurant_management.setup.install.after_install"
 after_install = "restaurant_management.setup.install.after_install"
@@ -39,7 +39,7 @@ after_install = "restaurant_management.setup.install.after_install"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/{app_name}/css/{app_name}.css"
 
-app_include_js = [
+""" app_include_js = [
     '/assets/restaurant_management/js/clusterize.min.js',
     '/assets/restaurant_management/js/interact.min.js',
     '/assets/restaurant_management/js/drag.js',
@@ -52,7 +52,45 @@ app_include_js = [
     "/assets/restaurant_management/helper/js/frappe-helper-api.js",
     "/assets/restaurant_management/helper/js/frappe-form-class.js",
     "/assets/restaurant_management/helper/js/desk-form-class.js"
+] """
+
+# The React bundle (dist/js/restaurant.js + dist/css/index.css) is NOT
+# included globally: the restaurant-manage page loads it on demand, so the
+# rest of the Desk doesn't download it or get Tailwind's base styles.
+# meta-form.js stays global: the POS Profile form script uses MetaForm.
+app_include_js = [
+  "/assets/restaurant_management/helper/js/meta-form.js",
 ]
+app_include_css = [
+  "/assets/restaurant_management/helper/css/desk-form.css"
+]
+
+# Doc Events — merge into existing doc_events dict
+doc_events = {
+    # ... existing entries ...
+    "Restaurant Booking": {
+        "on_change": "restaurant_management.api.booking.on_booking_update",
+        "on_trash": "restaurant_management.api.booking.on_booking_delete",
+    },
+    "POS Profile": {
+        "on_change": "restaurant_management.api.restaurant.on_pos_profile_change",
+        "on_trash": "restaurant_management.api.restaurant.on_pos_profile_change"
+    },
+    "Restaurant Permission Manage": {
+        "on_change": "restaurant_management.api.restaurant.on_pos_profile_change",
+        "on_trash": "restaurant_management.api.restaurant.on_pos_profile_change"
+    }
+}
+
+# Scheduler — merge into existing scheduler_events
+scheduler_events = {
+    # ... existing entries ...
+    "cron": {
+        "*/15 * * * *": [
+            "restaurant_management.api.booking.auto_expire_no_shows",
+        ],
+    },
+}
 
 # include js, css files in header of web template
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
