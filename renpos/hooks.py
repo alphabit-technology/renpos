@@ -9,7 +9,7 @@ app_icon = "octicon octicon-file-directory"
 app_color = "grey"
 app_email = "qubitcore.io@gmail.com"
 app_license = "GPL-3.0"
-source_link = "https://github.com/alphabit-technology/erpnext-restaurant"
+source_link = "https://github.com/alphabit-technology/renpos"
 
 after_migrate = "renpos.setup.install.after_install"
 after_install = "renpos.setup.install.after_install"

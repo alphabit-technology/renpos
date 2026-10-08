@@ -34,7 +34,7 @@ POS invoices.
 ## Installation
 
 ```bash
-bench get-app <repository url>
+bench get-app https://github.com/alphabit-technology/renpos
 bench --site your-site install-app renpos
 ```
 
@@ -44,7 +44,7 @@ The POS is the **Ren POS** page (`/app/ren-pos`); setup is in the
 ### Sites that ran the old app (`restaurant_management`)
 
 ```bash
-bench get-app <repository url>        # puts renpos in apps/
+bench get-app https://github.com/alphabit-technology/renpos   # puts renpos in apps/
 # sites/apps.txt: replace restaurant_management with renpos
 bench --site your-site renpos-migrate-site
 bench --site your-site migrate
