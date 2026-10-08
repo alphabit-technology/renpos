@@ -2,7 +2,7 @@ import { useRestaurant } from '../../context/RestaurantContext.jsx'
 import { Plus, Pencil, Trash2, Menu, Landmark, CheckIcon, CalendarDays } from 'lucide-react'
 import { ActionButton } from '@c/ui/ActionButton.jsx'
 import { useRooms } from '@/context/RoomsContext.jsx'
-import {can, generalCustomAccess} from "@/router/permissions"
+import { can } from "@/router/permissions"
 
 export function AddTableButton({ onAdd }) {
   const { editing } = useRestaurant()

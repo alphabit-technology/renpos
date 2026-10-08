@@ -1,0 +1,153 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Book a Table") }}{% endblock %}
+
+{% block page_content %}
+<style>
+  .rz { max-width: 560px; margin: 2rem auto 4rem; font-size: 15px; }
+  .rz h1 { font-size: 1.9rem; font-weight: 700; margin-bottom: .25rem; }
+  .rz .sub { color: var(--text-muted); margin-bottom: 1.5rem; }
+  .rz .card { border: 1px solid var(--border-color); border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; background: var(--card-bg, #fff); }
+  .rz label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted); margin-bottom: .35rem; }
+  .rz input, .rz select, .rz textarea { width: 100%; border: 1px solid var(--border-color); border-radius: 10px; padding: .6rem .75rem; font-size: 15px; background: transparent; color: inherit; }
+  .rz .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+  .rz .times { display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: .5rem; margin-top: .5rem; }
+  .rz .times button { border: 1px solid var(--border-color); border-radius: 10px; padding: .55rem 0; font-weight: 600; background: transparent; color: inherit; font-variant-numeric: tabular-nums; }
+  .rz .times button.sel { background: #111; color: #fff; border-color: #111; }
+  .rz .primary { width: 100%; border: 0; border-radius: 12px; padding: .85rem; font-weight: 700; font-size: 16px; background: #111; color: #fff; }
+  .rz .primary:disabled { opacity: .4; }
+  .rz .muted { color: var(--text-muted); font-size: 13px; }
+  .rz .err { color: #dc2626; font-size: 13px; margin-top: .5rem; }
+  .rz .ok { text-align: center; padding: 2rem 1rem; }
+  .rz .ok .ref { font-size: 1.4rem; font-weight: 700; letter-spacing: .03em; }
+  @media (max-width: 480px) { .rz { margin-top: 1rem; } .rz .row2 { grid-template-columns: 1fr; } }
+</style>
+
+<div class="rz">
+  {% if not restaurants %}
+    <h1>{{ _("Book a Table") }}</h1>
+    <p class="sub">{{ _("Online reservations aren't available right now. Please call us.") }}</p>
+  {% else %}
+  <div id="rz-form">
+    <h1 id="rz-title">{{ _("Book a Table") }}</h1>
+    <p class="sub" id="rz-sub">{{ restaurants[0].restaurant_name }}</p>
+
+    <div class="card">
+      {% if restaurants|length > 1 %}
+      <div style="margin-bottom:.75rem">
+        <label for="rz-restaurant">{{ _("Restaurant") }}</label>
+        <select id="rz-restaurant">
+          {% for r in restaurants %}<option value="{{ r.restaurant }}" data-max="{{ r.online_max_party or 8 }}" data-note="{{ r.online_note or '' }}">{{ r.restaurant_name }}</option>{% endfor %}
+        </select>
+      </div>
+      {% else %}
+      <input type="hidden" id="rz-restaurant" value="{{ restaurants[0].restaurant }}" data-max="{{ restaurants[0].online_max_party or 8 }}">
+      {% endif %}
+      <div class="row2">
+        <div><label for="rz-date">{{ _("Date") }}</label><input type="date" id="rz-date" min="{{ today }}" value="{{ today }}"></div>
+        <div><label for="rz-party">{{ _("Guests") }}</label><select id="rz-party"></select></div>
+      </div>
+      <div style="margin-top:1rem">
+        <label>{{ _("Time") }}</label>
+        <div id="rz-times" class="times"></div>
+        <p id="rz-times-msg" class="muted"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="margin-bottom:.75rem"><label for="rz-name">{{ _("Name") }}</label><input id="rz-name" autocomplete="name"></div>
+      <div class="row2">
+        <div><label for="rz-phone">{{ _("Phone") }}</label><input id="rz-phone" type="tel" autocomplete="tel"></div>
+        <div><label for="rz-email">{{ _("Email") }}</label><input id="rz-email" type="email" autocomplete="email"></div>
+      </div>
+      <div style="margin-top:.75rem"><label for="rz-notes">{{ _("Notes (optional)") }}</label><textarea id="rz-notes" rows="2" placeholder="{{ _('Allergies, occasion...') }}"></textarea></div>
+    </div>
+
+    <p class="muted" id="rz-note" style="margin-bottom:1rem">{{ restaurants[0].online_note or "" }}</p>
+    <button class="primary" id="rz-book" disabled>{{ _("Reserve") }}</button>
+    <p class="err" id="rz-err"></p>
+  </div>
+
+  <div id="rz-done" class="card ok" style="display:none">
+    <h1>{{ _("You're booked!") }}</h1>
+    <p class="sub" id="rz-done-text"></p>
+    <p class="muted">{{ _("Your reference") }}</p>
+    <p class="ref" id="rz-ref"></p>
+    <p class="muted">{{ _("We sent a confirmation to your email.") }}</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+frappe.ready(() => {
+  const $ = (id) => document.getElementById(id);
+  if (!$("rz-form")) return;
+  let time = null;
+
+  const restaurantEl = $("rz-restaurant");
+  const current = () => restaurantEl.tagName === "SELECT" ? restaurantEl.selectedOptions[0] : restaurantEl;
+
+  const fillParty = () => {
+    const max = parseInt(current().dataset.max || "8", 10);
+    const prev = $("rz-party").value || "2";
+    $("rz-party").innerHTML = Array.from({ length: max }, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
+    $("rz-party").value = Math.min(parseInt(prev, 10), max);
+    if (restaurantEl.tagName === "SELECT") {
+      $("rz-sub").textContent = current().textContent;
+      $("rz-note").textContent = current().dataset.note || "";
+    }
+  };
+
+  const ready = () => {
+    $("rz-book").disabled = !(time && $("rz-name").value.trim() && $("rz-phone").value.trim() && $("rz-email").value.trim());
+  };
+
+  const loadTimes = () => {
+    time = null; ready();
+    $("rz-times").innerHTML = ""; $("rz-times-msg").textContent = __("Loading...");
+    frappe.call({
+      method: "renpos.api.public_booking.get_times",
+      args: { restaurant: restaurantEl.value, date: $("rz-date").value, party_size: $("rz-party").value },
+      callback: (r) => {
+        const times = r.message || [];
+        $("rz-times-msg").textContent = times.length ? "" : __("No tables left on this day. Try another date.");
+        $("rz-times").innerHTML = times.map((t) => `<button type="button" data-t="${t}">${t}</button>`).join("");
+      },
+      error: () => { $("rz-times-msg").textContent = ""; },
+    });
+  };
+
+  $("rz-times").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    document.querySelectorAll("#rz-times button").forEach((x) => x.classList.remove("sel"));
+    b.classList.add("sel"); time = b.dataset.t; ready();
+  });
+  ["rz-name", "rz-phone", "rz-email"].forEach((id) => $(id).addEventListener("input", ready));
+  $("rz-date").addEventListener("change", loadTimes);
+  $("rz-party").addEventListener("change", loadTimes);
+  if (restaurantEl.tagName === "SELECT") restaurantEl.addEventListener("change", () => { fillParty(); loadTimes(); });
+
+  $("rz-book").addEventListener("click", () => {
+    $("rz-err").textContent = ""; $("rz-book").disabled = true;
+    frappe.call({
+      method: "renpos.api.public_booking.book",
+      type: "POST",
+      args: {
+        restaurant: restaurantEl.value, date: $("rz-date").value, time, party_size: $("rz-party").value,
+        guest_name: $("rz-name").value, contact_number: $("rz-phone").value, email: $("rz-email").value,
+        notes: $("rz-notes").value,
+      },
+      callback: (r) => {
+        const m = r.message || {};
+        $("rz-form").style.display = "none"; $("rz-done").style.display = "";
+        $("rz-ref").textContent = m.reference;
+        $("rz-done-text").textContent = __("Table for {0} on {1} at {2}", [m.party_size, m.date, m.time]);
+      },
+      error: () => { ready(); loadTimes(); },
+    });
+  });
+
+  fillParty(); loadTimes();
+});
+</script>
+{% endblock %}

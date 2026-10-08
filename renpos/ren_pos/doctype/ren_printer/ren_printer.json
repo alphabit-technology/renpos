@@ -1,0 +1,154 @@
+{
+ "actions": [],
+ "creation": "2026-09-29 17:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "printer_name",
+  "enabled",
+  "connection",
+  "column_break_conn",
+  "host",
+  "port",
+  "section_paper",
+  "paper_width",
+  "characters_per_line",
+  "column_break_paper",
+  "cut_paper",
+  "beep",
+  "copies"
+ ],
+ "fields": [
+  {
+   "fieldname": "printer_name",
+   "fieldtype": "Data",
+   "label": "Printer Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "e.g. Kitchen, Bar, Front Register"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "connection",
+   "fieldtype": "Select",
+   "label": "Connection",
+   "options": "Network (ESC/POS)",
+   "default": "Network (ESC/POS)",
+   "in_list_view": 1,
+   "description": "Thermal printer on the local network (Epson TM, Star in ESC/POS mode, most 80 mm printers). The server must reach it."
+  },
+  {
+   "fieldname": "column_break_conn",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "host",
+   "fieldtype": "Data",
+   "label": "IP Address / Host",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "port",
+   "fieldtype": "Int",
+   "label": "Port",
+   "default": "9100",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "section_paper",
+   "fieldtype": "Section Break",
+   "label": "Paper"
+  },
+  {
+   "fieldname": "paper_width",
+   "fieldtype": "Select",
+   "label": "Paper Width",
+   "options": "80 mm\n58 mm",
+   "default": "80 mm"
+  },
+  {
+   "fieldname": "characters_per_line",
+   "fieldtype": "Int",
+   "label": "Characters per Line",
+   "non_negative": 1,
+   "description": "Empty: 48 for 80 mm, 32 for 58 mm"
+  },
+  {
+   "fieldname": "column_break_paper",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "cut_paper",
+   "fieldtype": "Check",
+   "label": "Cut Paper",
+   "default": "1"
+  },
+  {
+   "fieldname": "beep",
+   "fieldtype": "Check",
+   "label": "Beep on Kitchen Tickets"
+  },
+  {
+   "fieldname": "copies",
+   "fieldtype": "Int",
+   "label": "Copies",
+   "default": "1",
+   "non_negative": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-29 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Printer",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User",
+   "select": 1,
+   "print": 1,
+   "export": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:printer_name",
+ "title_field": "printer_name"
+}

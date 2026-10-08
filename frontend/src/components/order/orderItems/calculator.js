@@ -2,7 +2,7 @@
  * OrderCalculator — Pure client-side calculation engine.
  *
  * Replaces the server-side calculations that OrderItem.tax_calculate()
- * and TableOrder.aggregate() were doing via frappe.call.
+ * and RenOrder.aggregate() were doing via frappe.call.
  *
  * All functions are pure (no side effects, no API calls).
  * Pre-loaded POS data is passed in as arguments.
@@ -11,8 +11,7 @@
 // ─── Item-level calculations ─────────────────────
 
 /**
- * Calculate rate after discount.
- * Mirrors legacy: rate = price_list_rate * (1 - discount / 100)
+ * Rate after discount: price_list_rate * (1 - discount / 100)
  */
 export function applyDiscount(priceListRate, discountPercentage) {
   const rate = flt(priceListRate) * (1 - flt(discountPercentage) / 100);
@@ -20,8 +19,7 @@ export function applyDiscount(priceListRate, discountPercentage) {
 }
 
 /**
- * Calculate discount percentage from rate.
- * Mirrors legacy: discount = ((base - rate) / base) * 100
+ * Discount percentage from a rate: (base - rate) / base * 100
  */
 export function discountFromRate(priceListRate, rate) {
   const base = flt(priceListRate);
@@ -31,12 +29,11 @@ export function discountFromRate(priceListRate, rate) {
 }
 
 /**
- * Calculate tax for a single item.
- * Mirrors legacy OrderItem.tax_calculate()
+ * Tax of a single line.
  *
  * @param {number} baseAmount - qty * rate
  * @param {object} itemTaxRate - parsed JSON: { "VAT - 15%": 15, ... }
- * @param {boolean} taxInclusive - from pos_profile.posa_tax_inclusive
+ * @param {boolean} taxInclusive - from pos_profile.ren_tax_inclusive
  * @returns {{ taxAmount: number, netAmount: number }}
  */
 export function calculateItemTax(baseAmount, itemTaxRate, taxInclusive = false) {
@@ -98,11 +95,10 @@ export function calculateItem(item, opts = {}) {
 
 /**
  * Aggregate all items in an order.
- * Mirrors legacy TableOrder.aggregate()
  *
  * @param {object[]} items - array of calculated items
- * @param {object} orderData - { charge_amount, is_delivery, delivery_branch }
- * @returns {{ netTotal, totalTax, grandTotal, itemCount }}
+ * @param {object} orderData - the order (ren_delivery, ren_delivery_fee)
+ * @returns {{ netTotal, totalTax, grandTotal, itemCount, itemsTotal, deliveryFee }}
  */
 export function aggregateOrder(items, orderData = {}) {
   let netTotal = 0;
@@ -113,17 +109,17 @@ export function aggregateOrder(items, orderData = {}) {
     netTotal += flt(item.amount || 0);
   }
 
-  // Delivery charges
-  if (orderData.is_delivery === 1 && orderData.delivery_branch !== 1) {
-    const charge = flt(orderData.charge_amount || 0);
-    totalTax += charge;
-    netTotal += charge;
-  }
+  const itemsTotal = netTotal;
+  // delivery fee: a charge on the bill (api/delivery.py)
+  const deliveryFee = orderData.ren_delivery ? flt(orderData.ren_delivery_fee || 0) : 0;
+  netTotal += deliveryFee;
 
   return {
     netTotal: flt(netTotal),
     totalTax: flt(totalTax),
     grandTotal: flt(netTotal),
+    itemsTotal: flt(itemsTotal),
+    deliveryFee,
     itemCount: items.length,
   };
 }
@@ -131,8 +127,7 @@ export function aggregateOrder(items, orderData = {}) {
 // ─── Numpad input helpers ────────────────────────
 
 /**
- * Recalculate item based on which field the user edited via numpad.
- * Mirrors legacy OrderManage.update_detail()
+ * Recalculate a line after the numpad edits one of its fields.
  *
  * @param {object} item - current item data
  * @param {string} field - "qty" | "discount" | "rate"
@@ -231,8 +226,8 @@ function safeParseJSON(str) {
 }
 
 function formatCurrency(value) {
-  return typeof RM !== "undefined" && RM.format_currency
-    ? RM.format_currency(flt(value))
+  return typeof REN !== "undefined" && REN.format_currency
+    ? REN.format_currency(flt(value))
     : `$ ${flt(value).toFixed(2)}`;
 }
 

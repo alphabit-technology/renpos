@@ -1,0 +1,40 @@
+{
+ "actions": [],
+ "creation": "2026-10-05 08:30:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "room_description"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Room",
+   "options": "Ren Room",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "room.description",
+   "fieldname": "room_description",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Description"
+  }
+ ],
+ "istable": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-05 08:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Station Room",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

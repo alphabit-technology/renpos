@@ -1,0 +1,219 @@
+{
+ "actions": [],
+ "creation": "2020-04-12 01:14:42.191962",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_group",
+  "status",
+  "notes",
+  "item_code",
+  "qty",
+  "rate",
+  "discount_percentage",
+  "identifier",
+  "item_name",
+  "price_list_rate",
+  "amount",
+  "item_tax_template",
+  "item_tax_rate",
+  "valuation_rate",
+  "discount_amount",
+  "tax_amount",
+  "ordered_time",
+  "batch_no",
+  "has_batch_no",
+  "has_serial_no",
+  "serial_no",
+  "modifiers",
+  "modifiers_amount",
+  "ren_parts",
+  "ren_part_status",
+  "ren_hold"
+ ],
+ "fields": [
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Read Only",
+   "label": "Item Group"
+  },
+  {
+   "default": "Attending",
+   "fieldname": "status",
+   "fieldtype": "Link",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Ren Order Status",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "in_preview": 1,
+   "in_standard_filter": 1,
+   "label": "Item Code",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "label": "Qty"
+  },
+  {
+   "fieldname": "rate",
+   "fieldtype": "Currency",
+   "label": "Rate"
+  },
+  {
+   "fieldname": "discount_percentage",
+   "fieldtype": "Float",
+   "label": "Discount Percentage"
+  },
+  {
+   "fieldname": "identifier",
+   "fieldtype": "Read Only",
+   "label": "Identifier",
+   "search_index": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Read Only",
+   "label": "Item Name",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "price_list_rate",
+   "fieldtype": "Currency",
+   "label": "Price List Rate"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount"
+  },
+  {
+   "fieldname": "item_tax_template",
+   "fieldtype": "Link",
+   "label": "Item Tax Template",
+   "options": "Item Tax Template"
+  },
+  {
+   "fieldname": "item_tax_rate",
+   "fieldtype": "Data",
+   "label": "Item Tax Rate"
+  },
+  {
+   "fieldname": "valuation_rate",
+   "fieldtype": "Currency",
+   "label": "Valuation Rate"
+  },
+  {
+   "fieldname": "discount_amount",
+   "fieldtype": "Currency",
+   "label": "Discount Amount"
+  },
+  {
+   "fieldname": "tax_amount",
+   "fieldtype": "Currency",
+   "label": "Tax Amount"
+  },
+  {
+   "fieldname": "ordered_time",
+   "fieldtype": "Datetime",
+   "label": "Ordered Time"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "label": "Batch No",
+   "options": "Batch"
+  },
+  {
+   "default": "0",
+   "fetch_from": "item_code.has_batch_no",
+   "fieldname": "has_batch_no",
+   "fieldtype": "Check",
+   "label": "Has Batch No",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fetch_from": "item_code.has_serial_no",
+   "fieldname": "has_serial_no",
+   "fieldtype": "Check",
+   "label": "Has Serial No",
+   "read_only": 1
+  },
+  {
+   "fieldname": "serial_no",
+   "fieldtype": "Link",
+   "label": "Serial No",
+   "options": "Serial No"
+  },
+  {
+   "fieldname": "modifiers",
+   "fieldtype": "JSON",
+   "label": "Modifiers",
+   "read_only": 1,
+   "description": "Chosen options: [{group, group_title, option, label, price, item}]"
+  },
+  {
+   "fieldname": "modifiers_amount",
+   "fieldtype": "Currency",
+   "label": "Modifiers Amount",
+   "read_only": 1,
+   "description": "Sum of the options' extra prices, per unit (included in Price List Rate)"
+  },
+  {
+   "fieldname": "ren_parts",
+   "fieldtype": "JSON",
+   "label": "Parts",
+   "read_only": 1,
+   "hidden": 1,
+   "description": "Components prepared at their own production centers (items with \"Send components to their stations\")"
+  },
+  {
+   "fieldname": "ren_part_status",
+   "fieldtype": "JSON",
+   "label": "Part Status",
+   "read_only": 1,
+   "hidden": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "ren_hold",
+   "fieldtype": "Check",
+   "label": "Hold",
+   "default": "0",
+   "description": "Held: Send leaves it for later; Fire sends it (courses)"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-05 08:10:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Order Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

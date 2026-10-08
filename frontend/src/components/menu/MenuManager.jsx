@@ -1,10 +1,12 @@
 import { useState, useCallback, useTransition } from "react";
+import { getUrlParam, setUrlParams } from "@/utils/urlState";
 import { useMenuManager } from "./useMenuManager";
 import { ItemTree } from "@/components/items";
 import Modal from "@c/ui/Modal";
 import {
-  Plus, ChevronLeft, ChevronRight, Search, Loader2,
+  Plus, ChevronLeft, ChevronRight, Search, Loader2, Pencil,
 } from "lucide-react";
+import { ItemEditor } from "./src/ItemEditor";
 
 import { MenuList } from "./src/MenuList";
 import { TabButton } from "./src/TabButton";
@@ -22,17 +24,33 @@ import { TabButton } from "./src/TabButton";
  */
 function Menu({ company = frappe.defaults.get_user_default("company"), className = "" }) {
   const mm = useMenuManager(company);
-  const [activeTab, setActiveTab] = useState("items");
+  // tab survives a reload (?menu_tab=menu)
+  const [activeTab, setActiveTab] = useState(() => (getUrlParam("menu_tab") === "menu" ? "menu" : "items"));
   const [isPending, startTransition] = useTransition();
   const [showNewMenu, setShowNewMenu] = useState(false);
   const [newMenuName, setNewMenuName] = useState("");
   const [sidebarSearch, setSidebarSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(null);
+  // item editor: { code } to edit, { code: null } for a new item
+  const [editing, setEditing] = useState(null);
+
+  // the pencil on every card opens the item editor (a tap on the card still adds / removes it)
+  const renderEdit = useCallback((item) => (
+    <span
+      role="button" tabIndex={0} title={__("Edit item")}
+      onClick={(e) => { e.stopPropagation(); setEditing({ code: item.item_code }); }}
+      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setEditing({ code: item.item_code }); } }}
+      className="w-7 h-7 rounded-lg bg-black/40 hover:bg-black/60 text-white/90 flex items-center justify-center backdrop-blur-sm"
+    >
+      <Pencil size={13} />
+    </span>
+  ), []);
 
   // The only difference between tabs: menuName or null
   const currentMenuName = activeTab === "menu" ? mm.activeMenuName : null;
 
   const switchTab = useCallback((tab) => {
+    setUrlParams({ menu_tab: tab === "menu" ? "menu" : null });
     startTransition(() => {
       setActiveTab(tab);
     });
@@ -186,6 +204,12 @@ function Menu({ company = frappe.defaults.get_user_default("company"), className
               {isPending && (
                 <Loader2 size={12} className="animate-spin text-muted-foreground ml-2" />
               )}
+              <button
+                onClick={() => setEditing({ code: null })}
+                className="ml-auto flex items-center gap-1.5 h-9 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold"
+              >
+                <Plus size={15} /> {__("New item")}
+              </button>
             </div>
 
             <ItemTree
@@ -196,6 +220,7 @@ function Menu({ company = frappe.defaults.get_user_default("company"), className
               menuItems={mm.menuItems}
               menuMode={true}
               showOrderQty={false}
+              renderAction={renderEdit}
             />
           </>
         ) : (
@@ -208,6 +233,15 @@ function Menu({ company = frappe.defaults.get_user_default("company"), className
           </div>
         )}
       </main>
+
+      {editing && (
+        <ItemEditor
+          itemCode={editing.code}
+          menu={mm.activeMenuName}
+          onClose={() => setEditing(null)}
+          onSaved={() => { mm.selectMenu(mm.activeMenuName); mm.refreshList(); }}
+        />
+      )}
 
       {confirmDelete && (
         <ConfirmDialog

@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create Menu",
+ "creation": "2026-09-29 21:00:00.000000",
+ "description": "Add the dishes and drinks waiters can sell. Items need a price in the POS price list.\n\nThen set it as the **Active Menu** of your restaurant.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 2,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-05 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Create the Menu",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Create the Menu",
+ "validate_action": 0,
+ "reference_document": "Ren Menu"
+}

@@ -1,10 +1,12 @@
 import { memo, useCallback } from "react";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import {
   Delete, Minus as MinusIcon, Plus as PlusIcon, Trash2,
   Send, CreditCard, FileText, Split, ArrowRightLeft,
-  Users2Icon, Ticket, PencilIcon, StarsIcon, PrinterIcon, Trash2Icon
+  Users2Icon, PrinterIcon, Trash2Icon, SlidersHorizontal, PauseCircle, Flame, Calculator
 } from "lucide-react";
 import { flt, formatCurrency } from "../orderItems/calculator";
+import OrderAPI from "../api";
 
 /**
  * OrderPad — Compact editing + actions panel (v3).
@@ -28,52 +30,51 @@ function Badge({ children, visible = true }) {
 
 // ═════════════════════════════════════════════════
 // ACTION BUTTON (Send, Bill, Divide, Transfer)
+// label on the left, icon on the right; Send is the big one
 // ═════════════════════════════════════════════════
 
-function ActionButton({ icon: Icon, label, onClick, disabled, badge, variant }) {
-  const base = "flex-1 flex flex-col items-center justify-center gap-1 text-[10px] font-semibold transition-all relative border border-border/60 rounded-lg";
-
-  const variants = {
-    send: [
-      "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 border-emerald-500/50",
-      disabled ? "disabled:bg-muted disabled:text-foreground/40 disabled:border-border/30" : "text-white",
-    ].join(" "),
-    default: [
-      "bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground hover:border-border active:bg-muted/80",
-      "disabled:text-foreground/30 disabled:border-border/30"
-    ].join(" "),
-  };
-  //ssh -N -L 0.0.0.0:80:192.168.2.3 ubuntu@192.168.2.3
-//192.168.139.3
+function ActionButton({ icon: Icon, label, hint, onClick, disabled, badge, variant, className = "" }) {
+  const primary = variant === "send" || variant === "fire";
+  const tone = primary
+    ? (disabled
+        ? "bg-muted/40 text-foreground/35 border-border/30"
+        : variant === "fire"
+          ? "bg-orange-600 hover:bg-orange-500 active:bg-orange-700 border-orange-500/50 text-white shadow-sm shadow-orange-900/30"
+          : "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 border-emerald-500/50 text-white shadow-sm shadow-emerald-900/30")
+    : "bg-muted/30 text-foreground/85 border-border/60 hover:bg-muted hover:text-foreground hover:border-border active:bg-muted/80 disabled:text-foreground/30 disabled:border-border/30 disabled:bg-muted/10";
   return (
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`${base} ${variants[variant] || variants.default}`}
+      className={`relative w-full flex items-center justify-between gap-2 px-3 rounded-lg border text-left transition-all disabled:cursor-not-allowed ${tone} ${className}`}
     >
-      <Icon size={16} />
-      <span>{label}</span>
+      <span className="min-w-0 flex flex-col">
+        <span className={`${primary ? "text-[15px] font-bold" : "text-[13px] font-semibold"} leading-tight truncate`}>{label}</span>
+        {hint && <span className={`text-[11px] leading-tight truncate ${primary && !disabled ? "text-white/80" : "text-muted-foreground"}`}>{hint}</span>}
+      </span>
+      <Icon size={primary ? 20 : 16} className={`shrink-0 ${primary ? "" : "opacity-70"}`} />
       <Badge visible={badge > 0}>{badge}</Badge>
     </button>
   );
 }
 
 // ═════════════════════════════════════════════════
-// SINGLE ACTION (Guests, Notes, Promo, Void)
+// SINGLE ACTION (Guests, Notes, Hold, Void): one row under the pad
 // ═════════════════════════════════════════════════
 
-function SingleAction({ action, className = "", Icon, label, badge, children }) {
+function SingleAction({ action, className = "", Icon, label, badge, disabled, title }) {
   return (
     <button
       onClick={action}
-      className={`relative flex-1 flex flex-col items-center justify-center gap-0.5
+      disabled={disabled}
+      title={title}
+      className={`relative min-w-0 h-10 flex items-center justify-center gap-1.5 px-1
                   border border-border/60 rounded-lg bg-muted/30
                   text-muted-foreground hover:bg-muted hover:text-foreground hover:border-border
-                  active:bg-muted/80 transition-all ${className}`}
+                  active:bg-muted/80 transition-all disabled:opacity-40 disabled:pointer-events-none ${className}`}
     >
-      {Icon && <Icon size={16} />}
-      {label && <span className="text-[9px] font-medium leading-none">{label}</span>}
-      {children}
+      {Icon && <Icon size={15} className="shrink-0" />}
+      {label && <span className="text-[11px] xl:text-xs font-medium truncate">{label}</span>}
       <Badge visible={badge != null}>{badge}</Badge>
     </button>
   );
@@ -85,27 +86,52 @@ function SingleAction({ action, className = "", Icon, label, badge, children }) 
 
 export const OrderPad = memo(function OrderPad({
   currentItem, numpadField, canEdit, canDiscount, canRate, canDelete,
-  onFieldSelect, onMinus, onPlus, onDelete,
+  onFieldSelect, onMinus, onPlus, onDelete, canModify, onModifiers,
   activeField, value, onChange, onEnter,
   totalTax = 0, grandTotal = 0,
   onSendOrder, onPay, onAccount, onDivide, onTransfer, onVoid, onRefresh,
   pendingCount = 0, hasItems = false, hasOrder = false,
-  currentOrder
+  currentOrder, heldCount = 0, onFire, canHold = false, currentHeld = false, onHold,
 }) {
+  // nothing left to send but held lines: the green button fires them
+  const firing = pendingCount === 0 && heldCount > 0;
+  // through the order API: waiters can't write orders directly
   const actionDinners = () => {
-    MetaForm.save("Table Order", currentOrder?.name, {
-      title: __("Set dinners"),
-      fields: ["dinners"],
-      onSave: () => onRefresh?.(),
-    });
+    if (!currentOrder?.name) return;
+    frappe.prompt(
+      { fieldname: "dinners", fieldtype: "Int", label: __("Guests"), default: currentOrder.dinners || 1 },
+      ({ dinners }) => OrderAPI.setDinners(currentOrder.name, dinners).then(() => onRefresh?.()),
+      __("Set guests"), __("Save"));
   };
 
+  // the keypad shows when it's needed (Qty / Disc% / Rate tapped, or the keypad
+  // button); hidden, the order lines get the room. Remembered per device.
+  const [padOpen, setPadOpen] = usePersistedState("ren_order_pad_open", false);
+  const selectField = (field) => {
+    if (!padOpen) setPadOpen(true);
+    onFieldSelect(field);
+  };
+
+  const sendButton = (className) => (
+    <ActionButton
+      icon={firing ? Flame : Send}
+      label={firing ? __("Fire") : __("Send")}
+      hint={firing
+        ? __("{0} held", [heldCount])
+        : pendingCount > 0 ? __("{0} new", [pendingCount]) : __("Nothing new")}
+      onClick={firing ? onFire : onSendOrder}
+      disabled={(pendingCount === 0 && heldCount === 0) || !hasOrder}
+      variant={firing ? "fire" : "send"}
+      className={className}
+    />
+  );
+
   const actionNotes = () => {
-    MetaForm.save("Table Order", currentOrder?.name, {
-      title: __("Set note"),
-      fields: ["notes"],
-      onSave: () => onRefresh?.(),
-    });
+    if (!currentOrder?.name) return;
+    frappe.prompt(
+      { fieldname: "notes", fieldtype: "Small Text", label: __("Note"), default: currentOrder.notes || "" },
+      ({ notes }) => OrderAPI.setNotes(currentOrder.name, notes).then(() => onRefresh?.()),
+      __("Set note"), __("Save"));
   };
 
   return (
@@ -117,76 +143,60 @@ export const OrderPad = memo(function OrderPad({
         canDiscount={canDiscount}
         canRate={canRate}
         canDelete={canDelete}
-        onFieldSelect={onFieldSelect}
+        onFieldSelect={selectField}
         onMinus={onMinus}
         onPlus={onPlus}
         onDelete={onDelete}
+        canModify={canModify}
+        onModifiers={onModifiers}
+        padOpen={padOpen}
+        onTogglePad={() => setPadOpen(!padOpen)}
       />
 
-      <div className="flex">
-        <div className="flex-1 p-2">
-          <NumPadGrid
-            activeField={activeField}
-            value={value}
-            onChange={onChange}
-            onEnter={onEnter}
-          />
-        </div>
-
-        <div className="w-48 grid grid-cols-[1fr_2fr] gap-1.5 p-2 border-l border-border">
-          <div className="flex flex-col gap-1.5">
-            <SingleAction
-              action={actionDinners}
-              Icon={Users2Icon}
-              label={__("Guests")}
-              badge={currentOrder?.dinners}
-            />
-            <SingleAction
-              action={actionNotes}
-              Icon={FileText}
-              label={__("Notes")}
-            />
-            <SingleAction
-              Icon={StarsIcon}
-              label={__("Promo")}
-            />
-            <SingleAction
-              action={onVoid}
-              Icon={Trash2Icon}
-              label={__("Void")}
-              className="text-destructive/60 border-destructive/20 hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30"
+      {padOpen ? (
+        <div className="flex gap-2 px-2 pt-2">
+          <div className="flex-1 min-w-0">
+            <NumPadGrid
+              activeField={activeField}
+              value={value}
+              onChange={onChange}
+              onEnter={onEnter}
             />
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <ActionButton
-              icon={Send}
-              label={__("Send")}
-              onClick={onSendOrder}
-              disabled={pendingCount === 0 || !hasOrder}
-              badge={pendingCount}
-              variant="send"
-            />
-            <ActionButton
-              icon={PrinterIcon}
-              label={__("Bill")}
-              onClick={onAccount}
-              disabled={!hasItems}
-            />
-            <ActionButton
-              icon={Split}
-              label={__("Divide")}
-              onClick={onDivide}
-              disabled={!hasItems}
-            />
-            <ActionButton
-              icon={ArrowRightLeft}
-              label={__("Transfer")}
-              onClick={onTransfer}
-              disabled={!hasOrder}
-            />
+          <div className="w-[46%] max-w-56 flex flex-col gap-1.5">
+            {sendButton("flex-[1.7]")}
+            <ActionButton icon={PrinterIcon} label={__("Bill")} onClick={onAccount} disabled={!hasItems} className="flex-1" />
+            <ActionButton icon={Split} label={__("Divide")} onClick={onDivide} disabled={!hasItems} className="flex-1" />
+            <ActionButton icon={ArrowRightLeft} label={__("Transfer")} onClick={onTransfer} disabled={!hasOrder} className="flex-1" />
           </div>
         </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-1.5 px-2 pt-2">
+          {sendButton("col-span-3 h-14")}
+          <ActionButton icon={PrinterIcon} label={__("Bill")} onClick={onAccount} disabled={!hasItems} className="h-11" />
+          <ActionButton icon={Split} label={__("Divide")} onClick={onDivide} disabled={!hasItems} className="h-11" />
+          <ActionButton icon={ArrowRightLeft} label={__("Transfer")} onClick={onTransfer} disabled={!hasOrder} className="h-11" />
+        </div>
+      )}
+
+      <div className="grid grid-cols-4 gap-1.5 p-2">
+        <SingleAction action={actionDinners} Icon={Users2Icon} label={__("Guests")} badge={currentOrder?.dinners || null} />
+        <SingleAction action={actionNotes} Icon={FileText} label={__("Notes")} />
+        <SingleAction
+          action={onHold}
+          disabled={!canHold}
+          Icon={PauseCircle}
+          label={currentHeld ? __("Unhold") : __("Hold")}
+          badge={heldCount || null}
+          className={currentHeld ? "text-amber-400 border-amber-500/40" : ""}
+        />
+        <SingleAction
+          action={onVoid}
+          Icon={Trash2Icon}
+          label={__("Void")}
+          className="text-destructive/70 border-destructive/20 hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30"
+        />
       </div>
 
       <PayButton
@@ -236,7 +246,7 @@ const PayButton = memo(function PayButton({ totalTax, grandTotal, onPay, hasItem
 
 const EditorRow = memo(function EditorRow({
   currentItem, numpadField, canEdit, canDiscount, canRate, canDelete,
-  onFieldSelect, onMinus, onPlus, onDelete,
+  onFieldSelect, onMinus, onPlus, onDelete, canModify, onModifiers, padOpen, onTogglePad,
 }) {
   const fieldBtn = (field, label, getValue, disabled) => {
     const active = numpadField === field;
@@ -278,6 +288,12 @@ const EditorRow = memo(function EditorRow({
           <PlusIcon size={14} />
         </button>
 
+        {canModify && (
+          <button onClick={onModifiers} className={`${controlBtn} text-blue-400`} title={__("Options")}>
+            <SlidersHorizontal size={14} />
+          </button>
+        )}
+
         <button
           onClick={onDelete}
           disabled={!canDelete}
@@ -285,6 +301,16 @@ const EditorRow = memo(function EditorRow({
         >
           <Trash2 size={14} className="text-destructive" />
         </button>
+
+        {onTogglePad && (
+          <button
+            onClick={onTogglePad}
+            title={padOpen ? __("Hide keypad") : __("Show keypad")}
+            className={`${controlBtn} ${padOpen ? "text-amber-400 border-amber-500/50 bg-amber-500/10" : "text-muted-foreground"}`}
+          >
+            <Calculator size={14} />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -294,7 +320,7 @@ const EditorRow = memo(function EditorRow({
 // NUMPAD GRID
 // ═════════════════════════════════════════════════
 
-const NumPadGrid = memo(function NumPadGrid({ activeField, value, onChange, onEnter }) {
+const NumPadGrid = memo(function NumPadGrid({ activeField, value, onChange }) {
   const write = useCallback((key) => {
     if (!activeField) return;
     const current = String(value || "");
@@ -314,7 +340,7 @@ const NumPadGrid = memo(function NumPadGrid({ activeField, value, onChange, onEn
     onChange(activeField, parseFloat(newVal) || 0);
   }, [activeField, value, onChange]);
 
-  const keyCls = "h-11 rounded-lg bg-muted/30 border border-border hover:bg-muted active:bg-muted/80 text-foreground text-sm font-medium transition-all";
+  const keyCls = "h-10 rounded-lg bg-muted/30 border border-border hover:bg-muted active:bg-muted/80 text-foreground text-sm font-medium transition-all";
 
   const keys = [
     ["7", "8", "9"],

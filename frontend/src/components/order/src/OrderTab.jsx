@@ -1,5 +1,5 @@
 import { memo, useCallback, useState, useRef, useEffect } from "react";
-import { MoreVertical, Trash2, Copy, FileText, ArrowRightLeft } from "lucide-react";
+import { MoreVertical, Trash2, Copy, FileText, ArrowRightLeft, Smartphone, Truck } from "lucide-react";
 
 /**
  * OrderTab — Single order button with ⋮ actions.
@@ -50,6 +50,15 @@ export const OrderTab = memo(function OrderTab({
   }, [onAction, order]);
 
   const displayName = order.short_name || order.name?.slice(-5);
+  // placed by the guest from their phone (online pickup / QR at the table)
+  const origin = order.ren_delivery
+    ? (order.ren_origin === "Online" ? __("Online delivery") : __("Phone delivery"))
+    : order.ren_origin === "Online" ? __("Online pickup") : order.ren_origin === "Table QR" ? __("Ordered from the table") : "";
+  const guestTitle = origin ? [origin, order.ren_guest_name].filter(Boolean).join(" · ") : "";
+  const MarkIcon = order.ren_delivery ? Truck : Smartphone;
+  const guestMark = origin
+    ? <MarkIcon size={13} className="shrink-0 text-sky-400" aria-label={guestTitle} />
+    : null;
   const itemCount = order.items_count || 0;
   const pendingCount = order.pending_count || 0;
 
@@ -69,8 +78,9 @@ export const OrderTab = memo(function OrderTab({
                      }`}
         >
           {/* Tab label */}
-          <span className={`truncate ${selected ? "font-bold" : "font-medium"}`}>
-            {selected ? displayName : (index != null ? index + 1 : displayName)}
+          {guestMark}
+          <span className={`truncate ${selected ? "font-bold" : "font-medium"}`} title={guestTitle || undefined}>
+            {selected ? (order.ren_guest_name || displayName) : (index != null ? index + 1 : displayName)}
           </span>
 
           {/* Pending badge */}
@@ -132,16 +142,22 @@ export const OrderTab = memo(function OrderTab({
             : "px-3 bg-secondary/70 text-muted-foreground hover:bg-secondary hover:text-card-foreground"
         }`}
       >
-        <span className="text-sm font-bold leading-none truncate px-1">
-          {selected ? displayName : index + 1}
+        {guestMark}
+        <span className="text-sm font-bold leading-none truncate px-1" title={guestTitle || undefined}>
+          {selected ? (order.ren_guest_name || displayName) : index + 1}
         </span>
 
         {itemCount > 0 && (
           <span
+            title={pendingCount > 0
+              ? __("{0} items · {1} not sent", [itemCount, pendingCount])
+              : __("{0} items", [itemCount])}
             className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full text-[10px] font-bold flex items-center justify-center px-1 shadow-md ${
-              selected
-                ? "bg-amber-500 text-black shadow-amber-500/30"
-                : "bg-orange-500 text-white shadow-orange-500/30"
+              pendingCount > 0
+                ? "bg-orange-500 text-white shadow-orange-500/30"
+                : selected
+                  ? "bg-amber-500 text-black shadow-amber-500/30"
+                  : "bg-zinc-600 text-white"
             }`}
           >
             {itemCount}

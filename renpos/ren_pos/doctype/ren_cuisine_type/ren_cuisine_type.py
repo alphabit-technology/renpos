@@ -1,0 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2023, Quantum Bit Core and contributors
+# For license information, please see license.txt
+
+from frappe.model.document import Document
+
+class RenCuisineType(Document):
+	pass

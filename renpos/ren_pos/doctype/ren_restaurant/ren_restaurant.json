@@ -1,0 +1,285 @@
+{
+ "actions": [],
+ "autoname": "field:restaurant_name",
+ "creation": "2026-02-25 07:31:47.534646",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "section_general",
+  "restaurant_name",
+  "column_break_general",
+  "active",
+  "logo",
+  "description",
+  "section_menu",
+  "active_menu",
+  "section_pos",
+  "column_break_pos",
+  "default_price_list",
+  "pos_profile",
+  "section_service",
+  "table_service",
+  "section_operations",
+  "default_customer",
+  "column_break_operations",
+  "company",
+  "section_delivery",
+  "delivery",
+  "delivery_table",
+  "column_break_delivery",
+  "delivery_online",
+  "delivery_fee_account",
+  "delivery_zones",
+  "section_online_ordering",
+  "online_ordering",
+  "pickup_table",
+  "pickup_prep_minutes",
+  "column_break_online_ordering",
+  "table_ordering",
+  "table_orders_to_kitchen",
+  "online_note"
+ ],
+ "fields": [
+  {
+   "fieldname": "section_general",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "restaurant_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Restaurant Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "column_break_general",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active"
+  },
+  {
+   "fieldname": "logo",
+   "fieldtype": "Attach Image",
+   "label": "Logo"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_menu",
+   "fieldtype": "Section Break",
+   "label": "Menu"
+  },
+  {
+   "description": "The menu currently served. Switch between Lunch, Dinner, Happy Hour, etc.",
+   "fieldname": "active_menu",
+   "fieldtype": "Link",
+   "label": "Active Menu",
+   "options": "Ren Menu"
+  },
+  {
+   "fieldname": "section_pos",
+   "fieldtype": "Section Break",
+   "label": "POS & Pricing"
+  },
+  {
+   "fieldname": "column_break_pos",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Overrides POS Profile price list if set",
+   "fieldname": "default_price_list",
+   "fieldtype": "Link",
+   "label": "Default Price List",
+   "options": "Price List"
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile for orders",
+   "options": "POS Profile",
+   "description": "Orders taken by staff who don't charge (waiters, hosts) and online orders are priced with it. Cashiers charge with the POS Profile they are listed in. Empty: the restaurant's first POS Profile."
+  },
+  {
+   "fieldname": "section_service",
+   "fieldtype": "Section Break",
+   "label": "Table Service"
+  },
+  {
+   "fieldname": "table_service",
+   "fieldtype": "Select",
+   "label": "Who works a table",
+   "options": "Own tables\nTeam service",
+   "default": "Own tables",
+   "description": "Own tables: an occupied table belongs to whoever opened it; others need the role permission \"Work on other people's orders\" (or a manager PIN) to add or change orders there. Team service: everyone who works the table can see and change all of its orders."
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_operations",
+   "fieldtype": "Section Break",
+   "label": "Operations"
+  },
+  {
+   "fieldname": "default_customer",
+   "fieldtype": "Link",
+   "label": "Default Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_operations",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "section_delivery",
+   "fieldtype": "Section Break",
+   "label": "Delivery",
+   "collapsible": 1,
+   "description": "Delivery orders (phone / call center and online) go to the branch whose zones cover the customer's ZIP code."
+  },
+  {
+   "fieldname": "delivery",
+   "fieldtype": "Check",
+   "label": "Take delivery orders",
+   "default": "0"
+  },
+  {
+   "fieldname": "delivery_table",
+   "fieldtype": "Link",
+   "label": "Delivery orders go to",
+   "options": "Ren Table",
+   "depends_on": "delivery",
+   "mandatory_depends_on": "delivery",
+   "description": "A table (for example \"Delivery\" in a counter room) that holds the delivery orders."
+  },
+  {
+   "fieldname": "column_break_delivery",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "delivery_online",
+   "fieldtype": "Check",
+   "label": "Guests order delivery online",
+   "default": "0",
+   "depends_on": "delivery"
+  },
+  {
+   "fieldname": "delivery_fee_account",
+   "fieldtype": "Link",
+   "label": "Delivery fee account",
+   "options": "Account",
+   "depends_on": "delivery",
+   "description": "Income account the delivery fee is booked to (a charge on the invoice, like the tip)."
+  },
+  {
+   "fieldname": "delivery_zones",
+   "fieldtype": "Table",
+   "label": "Delivery zones",
+   "options": "Ren Delivery Zone",
+   "depends_on": "delivery"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_online_ordering",
+   "fieldtype": "Section Break",
+   "label": "Online Ordering",
+   "description": "Guests order from their phones: pickup orders from your website (/order), and orders from the table by scanning its QR code."
+  },
+  {
+   "default": "0",
+   "fieldname": "online_ordering",
+   "fieldtype": "Check",
+   "label": "Take pickup orders online"
+  },
+  {
+   "depends_on": "online_ordering",
+   "mandatory_depends_on": "online_ordering",
+   "fieldname": "pickup_table",
+   "fieldtype": "Link",
+   "options": "Ren Table",
+   "label": "Pickup orders go to",
+   "description": "A table (the counter, a 'Pickup' table) where online orders appear for the staff"
+  },
+  {
+   "default": "20",
+   "depends_on": "online_ordering",
+   "fieldname": "pickup_prep_minutes",
+   "fieldtype": "Int",
+   "label": "Ready in (minutes)",
+   "description": "Earliest pickup time offered. Orders for later are held and sent to the kitchen this many minutes before."
+  },
+  {
+   "fieldname": "column_break_online_ordering",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "table_ordering",
+   "fieldtype": "Check",
+   "label": "Guests order from their table (QR)"
+  },
+  {
+   "default": "0",
+   "depends_on": "table_ordering",
+   "fieldname": "table_orders_to_kitchen",
+   "fieldtype": "Check",
+   "label": "Send table orders straight to the kitchen",
+   "description": "Off: the order appears on the table for the server to review and send"
+  },
+  {
+   "fieldname": "online_note",
+   "fieldtype": "Small Text",
+   "label": "Note for guests",
+   "description": "Shown on the ordering page (hours, allergens, parking...)"
+  }
+ ],
+ "image_field": "logo",
+ "links": [],
+ "modified": "2026-10-05 20:10:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Restaurant",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Restaurant Manager",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "restaurant_name",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "restaurant_name",
+ "track_changes": 1
+}

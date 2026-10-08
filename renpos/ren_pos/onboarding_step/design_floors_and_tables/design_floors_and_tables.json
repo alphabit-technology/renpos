@@ -1,0 +1,23 @@
+{
+ "action": "Go to Page",
+ "action_label": "Open Floor Plan",
+ "creation": "2026-09-29 21:00:00.000000",
+ "description": "Draw your dining room: add **rooms**, place the **tables** and the **kitchen stations**.\n\nGive each station the item groups it prepares and its ticket printer.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 5,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-05 22:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Design Floors and Tables",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Design Floors and Tables",
+ "validate_action": 0,
+ "path": "ren-pos",
+ "callback_title": "Floor plan",
+ "callback_message": "Use the pencil button to add rooms, tables and kitchen stations, and drag them into place."
+}

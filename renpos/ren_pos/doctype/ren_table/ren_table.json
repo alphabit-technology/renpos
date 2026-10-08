@@ -1,0 +1,193 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-06 17:05:38.231362",
+ "default_view": "List",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "room",
+  "room_description",
+  "company",
+  "section_break_2",
+  "no_of_seats",
+  "column_break_4",
+  "minimum_seating",
+  "section_break_6",
+  "description",
+  "column_break_8",
+  "color",
+  "section_break_10",
+  "data_style",
+  "section_break_12",
+  "current_user",
+  "shape",
+  "restricted_to_tables_container",
+  "customer",
+  "ren_qr_token"
+ ],
+ "fields": [
+  {
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Room",
+   "options": "Ren Room"
+  },
+  {
+   "fetch_from": "room.company",
+   "fieldname": "company",
+   "fieldtype": "Read Only",
+   "in_standard_filter": 1,
+   "label": "Company"
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "no_of_seats",
+   "fieldtype": "Int",
+   "label": "No of Seats"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "default": "1",
+   "fieldname": "minimum_seating",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Minimum Seating"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_8",
+   "fieldtype": "Column Break"
+  },
+  {
+   "allow_in_quick_entry": 1,
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data_style",
+   "fieldtype": "Code",
+   "label": "Data Style"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "current_user",
+   "fieldtype": "Link",
+   "label": "Current User",
+   "options": "User"
+  },
+  {
+   "fetch_from": "room.description",
+   "fieldname": "room_description",
+   "fieldtype": "Read Only",
+   "label": "Room Description"
+  },
+  {
+   "fieldname": "shape",
+   "fieldtype": "Select",
+   "label": "Shape",
+   "options": "Square\nRound"
+  },
+  {
+   "fieldname": "restricted_to_tables_container",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "ren_qr_token",
+   "fieldtype": "Data",
+   "label": "QR Code",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "The table's ordering link: /order?t=<this code>. Print every table's QR code from Restaurant > Table QR Codes.",
+   "search_index": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-05 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Table",
+ "naming_rule": "By fieldname",
+ "owner": "alfredrz2012@gmail.com",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "search_fields": "room_description,description",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "description",
+ "track_changes": 1
+}

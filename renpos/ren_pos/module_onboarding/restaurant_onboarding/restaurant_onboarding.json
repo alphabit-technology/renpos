@@ -1,0 +1,47 @@
+{
+ "allow_roles": [
+  {
+   "role": "Restaurant Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "creation": "2026-09-29 21:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2026-10-05 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Restaurant Onboarding",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "step": "Create Your Restaurant"
+  },
+  {
+   "step": "Set Up the POS Profile"
+  },
+  {
+   "step": "Create the Menu"
+  },
+  {
+   "step": "Add Modifiers"
+  },
+  {
+   "step": "Add a Printer"
+  },
+  {
+   "step": "Design Floors and Tables"
+  },
+  {
+   "step": "Review Ren Settings"
+  },
+  {
+   "step": "Take Your First Order"
+  }
+ ],
+ "title": "Getting Started"
+}

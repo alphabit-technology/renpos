@@ -15,8 +15,8 @@ export default [
         ...globals.browser,
         // provided by Frappe Desk
         frappe: 'readonly', __: 'readonly', $: 'readonly', locals: 'readonly',
-        cur_frm: 'readonly', MetaForm: 'readonly', RM: 'readonly',
-        __RM_BUILD__: 'readonly', cur_dialog: 'readonly',
+        cur_frm: 'readonly', MetaForm: 'readonly', REN: 'readonly',
+        cur_dialog: 'readonly',
       },
     },
     ...js.configs.recommended,

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="{{ lang or 'en' }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="robots" content="noindex">
+  <title>{{ title }}</title>
+  <style>
+    html, body { margin: 0; background: #fff; color: #171717; -webkit-text-size-adjust: 100%; }
+    #guest-order:empty::before { content: ""; display: block; width: 28px; height: 28px; margin: 40vh auto 0;
+      border: 3px solid #e5e5e5; border-top-color: #171717; border-radius: 50%; animation: s .8s linear infinite; }
+    @keyframes s { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="guest-order"></div>
+  <noscript>{{ _("Please turn on JavaScript to order.") }}</noscript>
+  <script>window.REN_GUEST = {{ boot }};</script>
+  <script src="/assets/renpos/dist/js/guest.js?v={{ asset_version }}"></script>
+  <script>window.initGuestOrder && window.initGuestOrder(document.getElementById("guest-order"), window.REN_GUEST);</script>
+</body>
+</html>

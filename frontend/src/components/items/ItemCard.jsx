@@ -1,4 +1,5 @@
 import { memo, useCallback } from "react";
+import { useMenuTags } from "./menuTags";
 import { useOrderQty } from "../order/OrderQtyStore";
 import { getCategoryColor } from "./itemConstants";
 import { Check } from "lucide-react";
@@ -17,8 +18,8 @@ import { Check } from "lucide-react";
  */
 
 function formatCurrency(value) {
-  return typeof RM !== "undefined" && RM.format_currency
-    ? RM.format_currency(value)
+  return typeof REN !== "undefined" && REN.format_currency
+    ? REN.format_currency(value)
     : `$ ${Number(value).toFixed(2)}`;
 }
 
@@ -46,6 +47,26 @@ function MenuBadge({ badgeClass, className = "" }) {
 // ═══════════════════════════════════════════════
 //  TILE MODE
 // ═══════════════════════════════════════════════
+
+// Dietary / allergen tags as small chips (V, GF, PN...)
+function TagChips({ tags }) {
+  const all = useMenuTags();
+  if (!tags?.length) return null;
+  return (
+    <span className="flex flex-wrap gap-0.5 mt-1">
+      {tags.map((name) => {
+        const t = all.find((x) => x.name === name);
+        return (
+          <span key={name} title={name}
+            style={{ color: t?.color || undefined, borderColor: t?.color || undefined }}
+            className="px-1 rounded border text-[9px] font-bold leading-tight">
+            {t?.abbreviation || name}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
 
 function TileView({ item, qty, onClick, colors, isAvailable, inMenu, menuMode, renderAction }) {
   const hasQty = qty > 0;
@@ -78,11 +99,12 @@ function TileView({ item, qty, onClick, colors, isAvailable, inMenu, menuMode, r
         {item.item_name || item.item_code}
       </span>
 
+      <TagChips tags={item.tags} />
       {isAvailable ? (
         <span className={`text-[11px] font-medium tabular-nums mt-auto pt-1 ${
           hasQty ? "text-emerald-400/60" : "text-muted-foreground"
         }`}>
-          {item.price_list_rate > 0 ? formatCurrency(item.price_list_rate) : ""}
+          {item.price_list_rate > 0 ? `${item.has_variants ? __("from") + " " : ""}${formatCurrency(item.price_list_rate)}` : ""}
         </span>
       ) : (
         <span className="text-[10px] font-bold uppercase tracking-wider text-destructive mt-auto pt-1">
@@ -163,7 +185,7 @@ function ImageView({ item, qty, onClick, colors, isAvailable, inMenu, menuMode, 
         {item.price_list_rate > 0 && (
           <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/65 backdrop-blur-sm">
             <span className="text-[10px] font-semibold text-white/90 tabular-nums">
-              {formatCurrency(item.price_list_rate)}
+              {item.has_variants ? `${__("from")} ` : ""}{formatCurrency(item.price_list_rate)}
             </span>
           </div>
         )}
@@ -238,7 +260,7 @@ function CompactView({ item, qty, onClick, colors, isAvailable, inMenu, menuMode
       )}
 
       <span className="text-[10px] font-medium text-muted-foreground/60 tabular-nums shrink-0">
-        {item.price_list_rate > 0 ? formatCurrency(item.price_list_rate) : ""}
+        {item.price_list_rate > 0 ? `${item.has_variants ? __("from") + " " : ""}${formatCurrency(item.price_list_rate)}` : ""}
       </span>
 
       {hasQty ? (

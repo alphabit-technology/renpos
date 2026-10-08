@@ -1,0 +1,130 @@
+{
+ "actions": [],
+ "autoname": "field:action",
+ "creation": "2022-12-12 17:45:07.290828",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "action",
+  "icon",
+  "color",
+  "message",
+  "action_message",
+  "allows_to_edit_item",
+  "section_kind",
+  "kind",
+  "ask_driver"
+ ],
+ "fields": [
+  {
+   "fieldname": "action",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Status",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "in_list_view": 1,
+   "label": "Color",
+   "reqd": 1
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Shown As",
+   "reqd": 1,
+   "description": "How the status is shown, e.g. Waiting, Preparing, Ready"
+  },
+  {
+   "fieldname": "action_message",
+   "fieldtype": "Data",
+   "label": "Action",
+   "reqd": 1,
+   "description": "Button that leads to this status, e.g. Send, Start, Complete, Deliver. Production centers show the current status and, on the button, the action of the next one."
+  },
+  {
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "Icon"
+  },
+  {
+   "default": "0",
+   "fieldname": "allows_to_edit_item",
+   "fieldtype": "Check",
+   "label": "Waiter Can Edit",
+   "description": "Items in this status still belong to the waiter: they can be edited or removed and go to the production centers with the next Send. Production flows can't use these statuses. Pending (new items) always allows it; Sent never does."
+  },
+  {
+   "fieldname": "section_kind",
+   "fieldtype": "Section Break",
+   "label": "Meaning"
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Marks",
+   "options": "\nReady\nFinished",
+   "description": "Ready: the kitchen is done with the item (stations that wait for the whole order start from here). Finished: it reached the guest (served or delivered)."
+  },
+  {
+   "fieldname": "ask_driver",
+   "fieldtype": "Check",
+   "label": "Ask who delivers",
+   "default": "0",
+   "description": "Moving an order into this status asks for the driver (for example \"On the way\")."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-05 12:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Order Status",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

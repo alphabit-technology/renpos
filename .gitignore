@@ -3,8 +3,9 @@
 *.egg-info
 *.swp
 tags
-restaurant_management/docs/current
+frontend/dist/
 .idea
 /.idea/
 __pycache__/
 node_modules/
+*.rdb

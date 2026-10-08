@@ -5,6 +5,7 @@
  * Returns everything needed for client-side calculations:
  * items, prices, taxes, currency, permissions.
  */
+import { setEditableStatuses } from "./statuses";
 import { useState, useEffect, useCallback, useRef } from "react";
 import OrderAPI from "./api";
 
@@ -36,6 +37,7 @@ export default function usePosData(posProfile) {
         itemsByCode[item.item_code] = item;
       }
 
+      setEditableStatuses(result.editable_statuses);
       const posData = {
         // Config
         posProfile: result.pos_profile || posProfile,
@@ -44,11 +46,15 @@ export default function usePosData(posProfile) {
         allowDiscountChange: result.allow_discount_change ?? true,
         allowRateChange: result.allow_rate_change ?? true,
         isManager: !!result.is_manager,
+        receiptPrinter: result.receipt_printer || null,
 
         // Items catalog
         items: result.items || [],
         itemsByCode,
         itemGroups: result.item_groups || [],
+        // { group_name: { name, title, min_select, max_select, options } }
+        modifierGroups: result.modifier_groups || {},
+        modifierModes: result.modifier_modes || [],
 
         // Pricing
         priceList: result.price_list || "",

@@ -1,9 +1,6 @@
 /**
  * Item catalog constants — shared across ItemCard, ItemGrid, ItemTree.
  *
- * Category colors follow the Square/Toast pattern:
- * each item group gets a distinct color for instant visual recognition.
- *
  * Colors are defined as Tailwind classes for zero-runtime cost.
  * The `stripe` field is the left-edge color used in tile view.
  * The `accent` field is a raw hex value for SVG/canvas use.

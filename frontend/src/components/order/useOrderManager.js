@@ -19,6 +19,8 @@
  * 5. All derived state memoized.
  * 6. All callbacks stable via refs.
  */
+import { isEditable } from "./statuses";
+import { getUrlParam, setUrlParams } from "@/utils/urlState";
 import { useState, useCallback, useRef, useEffect, useMemo, useTransition } from "react";
 import OrderAPI, { CLIENT_ID } from "./api";
 import {
@@ -29,24 +31,26 @@ import {
   flt,
 } from "./orderItems/calculator";
 
+import { modifiersKey, sumModifiers } from "./modifierRules";
+export { modifiersKey, sumModifiers };
+
 let _counter = 0;
+
 function newIdentifier() {
   return `entry_${Date.now()}_${++_counter}`;
 }
 
-const EDITABLE_STATUSES = ["Pending", "Attending", null, undefined, ""];
-// "Sent" items can only be removed by managers (enforced by the server too)
-const DELETABLE_STATUSES = ["Pending", "Attending", null, undefined, ""];
-
-function isEditable(status) {
-  return EDITABLE_STATUSES.includes(status);
-}
-function isDeletable(status, isManager = false) {
-  return DELETABLE_STATUSES.includes(status) || (isManager && status === "Sent");
+// Statuses the waiter can still edit come from the server (Ren Order Status
+// "Allows to edit Item"); see statuses.js. "Sent" items can only be removed
+// by managers (enforced by the server too).
+// Sent lines can be voided by anyone: the server asks for a manager PIN when
+// the person's role doesn't allow voids.
+function isDeletable(status) {
+  return isEditable(status) || status === "Sent";
 }
 
 
-export default function useOrderManager({ tableName, posData, onClose }) {
+export default function useOrderManager({ tableName, posData }) {
   // ═══════════════════════════════════════════════
   // STATE — Only what MUST trigger re-renders
   // ═══════════════════════════════════════════════
@@ -130,10 +134,33 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     [itemsList, currentOrder]
   );
 
-  const pendingCount = useMemo(
-    () => itemsList.filter((i) => isEditable(i.status)).length,
+  // held lines (the next course) wait for Fire; Send leaves them
+  const heldCount = useMemo(
+    () => itemsList.filter((i) => isEditable(i.status) && i.ren_hold).length,
     [itemsList]
   );
+  const pendingCount = useMemo(
+    () => itemsList.filter((i) => isEditable(i.status) && !i.ren_hold).length,
+    [itemsList]
+  );
+
+  // Tabs: the open order's badge follows what the waiter is doing right now.
+  // While another order is loading, the items on screen are still the
+  // previous order's (their `parent`), so its badge keeps the server count.
+  const ordersWithCounts = useMemo(() => {
+    const mine = itemsList.every((i) => !i.parent || i.parent === currentOrderName);
+    if (!mine) return orders;
+    return orders.map((o) => (o.name === currentOrderName
+      ? { ...o, items_count: itemsList.length, pending_count: pendingCount }
+      : o));
+  }, [orders, currentOrderName, itemsList, pendingCount]);
+  const countsRef = useRef({});
+  useEffect(() => {
+    const mine = itemsList.every((i) => !i.parent || i.parent === currentOrderName);
+    if (mine && currentOrderName) {
+      countsRef.current = { order: currentOrderName, items_count: itemsList.length, pending_count: pendingCount };
+    }
+  }, [currentOrderName, itemsList, pendingCount]);
 
   // ═══════════════════════════════════════════════
   // SERVER SYNC — Ref-based, zero re-renders
@@ -149,7 +176,9 @@ export default function useOrderManager({ tableName, posData, onClose }) {
       if (!cur) return prev;
       const same = ["price_list_rate", "discount_percentage", "rate"].every(
         (k) => Math.abs(flt(cur[k]) - flt(serverItem[k])) < 0.005
-      ) && (cur.item_tax_rate || "{}") === (serverItem.item_tax_rate || "{}");
+      ) && (cur.item_tax_rate || "{}") === (serverItem.item_tax_rate || "{}")
+        && modifiersKey(cur.modifiers) === modifiersKey(serverItem.modifiers)
+        && Math.abs(flt(cur.modifiers_amount) - flt(serverItem.modifiers_amount)) < 0.005;
       if (same) return prev;
       return {
         ...prev,
@@ -160,6 +189,8 @@ export default function useOrderManager({ tableName, posData, onClose }) {
             discount_percentage: serverItem.discount_percentage,
             rate: serverItem.rate,
             item_tax_rate: serverItem.item_tax_rate,
+            modifiers: serverItem.modifiers || [],
+            modifiers_amount: serverItem.modifiers_amount || 0,
           },
           { taxInclusive: taxInclusiveRef.current }
         ),
@@ -179,7 +210,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
           const res = await OrderAPI.pushItem(job.orderName, job.item);
           applyServerItem(res?.item);
         } else if (job.type === "delete") {
-          await OrderAPI.deleteItem(job.orderName, job.identifier);
+          await OrderAPI.deleteItem(job.orderName, job.identifier, job.voidInfo);
         }
       } catch (err) {
         // The server rejected or corrected the change: tell the user and
@@ -203,14 +234,15 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     if (!savingRef.current && saveQueue.current.length === 0) return Promise.resolve();
     return new Promise((resolve) => syncWaitersRef.current.push(resolve));
   }, []);
+  const waitForSyncRef = useRef(waitForSync);
 
   const queueSave = useCallback((orderName, item) => {
     saveQueue.current.push({ type: "save", orderName, item });
     processSaveQueue();
   }, [processSaveQueue]);
 
-  const queueDelete = useCallback((orderName, identifier) => {
-    saveQueue.current.push({ type: "delete", orderName, identifier });
+  const queueDelete = useCallback((orderName, identifier, voidInfo) => {
+    saveQueue.current.push({ type: "delete", orderName, identifier, voidInfo });
     processSaveQueue();
   }, [processSaveQueue]);
 
@@ -219,8 +251,16 @@ export default function useOrderManager({ tableName, posData, onClose }) {
   // ═══════════════════════════════════════════════
 
   const selectOrder = useCallback(async (orderName) => {
+    // the order we leave keeps the counts it had on screen
+    const leaving = countsRef.current;
+    if (leaving.order && leaving.order !== orderName) {
+      setOrders((prev) => prev.map((o) => (o.name === leaving.order
+        ? { ...o, items_count: leaving.items_count, pending_count: leaving.pending_count }
+        : o)));
+    }
     // Urgent: highlight the order tab immediately
     setCurrentOrderName(orderName);
+    setUrlParams({ order: orderName });
     // NOTE: We do NOT clear currentItemId or items here.
     // Old data stays visible (with isPending fade) while new data loads.
     // Both items + selection change atomically inside the transition.
@@ -289,7 +329,10 @@ export default function useOrderManager({ tableName, posData, onClose }) {
       setOrders(ordersList);
 
       if (!preserveSelection) {
-        const target = result?.order || ordersList[ordersList.length - 1]?.name;
+        // the order open before a reload (?order=…), else the server's pick / the last one
+        const fromUrl = getUrlParam("order");
+        const target = (fromUrl && ordersList.some((o) => o.name === fromUrl) && fromUrl)
+          || result?.order || ordersList[ordersList.length - 1]?.name;
         if (target) {
           selectOrder(target);
         }
@@ -321,11 +364,13 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     }
   }, [tableName, selectOrder]);
 
-  const deleteOrder = useCallback(async () => {
+  // voidInfo {reason, note}: required by the server when items were sent
+  const deleteOrder = useCallback(async (voidInfo) => {
     const orderName = currentOrderNameRef.current;
     if (!orderName) return;
     try {
-      await OrderAPI.deleteOrder(orderName);
+      await waitForSyncRef.current?.();
+      await OrderAPI.deleteOrder(orderName, voidInfo);
       setOrders((prev) => prev.filter((o) => o.name !== orderName));
       setItemsSync({});
       setCurrentItemId(null);
@@ -375,8 +420,11 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     let sideEffects = null;
 
     setItemsSync((prev) => {
+      // same dish with the same options -> one line with more qty
+      const key = modifiersKey(menuItem.modifiers);
       const existing = Object.values(prev).find(
-        (i) => i.item_code === menuItem.item_code && isEditable(i.status)
+        (i) => i.item_code === menuItem.item_code && isEditable(i.status) && !i.ren_hold
+          && modifiersKey(i.modifiers) === key && !i.notes
       );
 
       if (existing) {
@@ -408,7 +456,6 @@ export default function useOrderManager({ tableName, posData, onClose }) {
         batch_no: "",
         serial_no: "",
         image: menuItem.image || "",
-        is_customizable: menuItem.is_customizable || 0,
         process_status_data: menuItem.process_status_data || {
           icon: "fa fa-cart-plus",
           color: "orange",
@@ -418,6 +465,16 @@ export default function useOrderManager({ tableName, posData, onClose }) {
       if (pd?.pricingRules?.length) {
         newItem = applyPricingRules(newItem, pd.pricingRules);
       }
+
+      // options: their extra price goes on top of the (rule) base price
+      const mods = menuItem.modifiers || [];
+      const modsAmount = sumModifiers(mods);
+      newItem = {
+        ...newItem,
+        modifiers: mods,
+        modifiers_amount: modsAmount,
+        price_list_rate: Math.max(flt(newItem.price_list_rate) + modsAmount, 0),
+      };
 
       const updated = calculateItem(newItem, { taxInclusive: ti });
       sideEffects = { identifier, item: updated };
@@ -430,6 +487,38 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     }
   }, [queueSave, tableName]);
   pushItemRef.current = pushItem;
+
+  // Change the options of a line not sent yet; the base price is kept.
+  const setItemModifiers = useCallback((identifier, modifiers) => {
+    const orderName = currentOrderNameRef.current;
+    const ti = taxInclusiveRef.current;
+    let saved = null;
+    setItemsSync((prev) => {
+      const item = prev[identifier];
+      if (!item || !isEditable(item.status)) return prev;
+      const base = flt(item.price_list_rate) - flt(item.modifiers_amount);
+      const amount = sumModifiers(modifiers);
+      saved = calculateItem(
+        { ...item, modifiers, modifiers_amount: amount, price_list_rate: Math.max(base + amount, 0), status: "Pending" },
+        { taxInclusive: ti }
+      );
+      return { ...prev, [identifier]: saved };
+    });
+    if (saved) queueSave(orderName, saved);
+  }, [queueSave]);
+
+  // hold a line not sent yet for a later course, or release it
+  const toggleHold = useCallback((identifier) => {
+    const orderName = currentOrderNameRef.current;
+    let saved = null;
+    setItemsSync((prev) => {
+      const item = prev[identifier];
+      if (!item || !isEditable(item.status)) return prev;
+      saved = { ...item, ren_hold: item.ren_hold ? 0 : 1 };
+      return { ...prev, [identifier]: saved };
+    });
+    if (saved) queueSave(orderName, saved);
+  }, [queueSave]);
 
   const updateItem = useCallback((identifier, field, value) => {
     const orderName = currentOrderNameRef.current;
@@ -464,7 +553,8 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     }
   }, [queueSave, queueDelete]);
 
-  const deleteItem = useCallback((identifier) => {
+  // voidInfo {reason, note}: for items already sent to the kitchen
+  const deleteItem = useCallback((identifier, voidInfo) => {
     const orderName = currentOrderNameRef.current;
     let shouldSync = false;
 
@@ -479,7 +569,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
 
     if (shouldSync) {
       setCurrentItemId((prev) => (prev === identifier ? null : prev));
-      queueDelete(orderName, identifier);
+      queueDelete(orderName, identifier, voidInfo);
     }
   }, [queueDelete]);
 
@@ -504,14 +594,16 @@ export default function useOrderManager({ tableName, posData, onClose }) {
   // ORDER ACTIONS
   // ═══════════════════════════════════════════════
 
-  const sendOrder = useCallback(async () => {
+  // fire = send the held lines (the next course) instead of the rest
+  const sendOrder = useCallback(async (fire = false) => {
     const orderName = currentOrderNameRef.current;
     if (!orderName) return;
+    fire = fire === true;
 
-    // Guard: check if there are actually pending items
+    // Guard: check if there are actually lines to send
     const currentItems = Object.values(itemsRef.current);
     const hasPending = currentItems.some(
-      (i) => isEditable(i.status) && flt(i.qty) > 0
+      (i) => isEditable(i.status) && flt(i.qty) > 0 && !!i.ren_hold === fire
     );
     if (!hasPending) return;
 
@@ -519,7 +611,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     await waitForSync();
     syncingRef.current = true;
     try {
-      const result = await OrderAPI.sendOrder(orderName);
+      const result = await OrderAPI.sendOrder(orderName, fire);
       const ti = taxInclusiveRef.current;
 
       if (result?.order) {
@@ -652,8 +744,8 @@ export default function useOrderManager({ tableName, posData, onClose }) {
       }, 300);
     };
 
-    // order_update is published to the "Table Order" doctype room
-    frappe.realtime.doctype_subscribe?.("Table Order");
+    // order_update is published to the "Ren Order" doctype room
+    frappe.realtime.doctype_subscribe?.("Ren Order");
     frappe.realtime.on("order_update", handler);
     return () => {
       frappe.realtime.off("order_update", handler);
@@ -669,7 +761,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
   }, [loadOrders]);
 
   return {
-    orders,
+    orders: ordersWithCounts,
     currentOrder,
     currentOrderName,
     items,
@@ -678,6 +770,8 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     currentItemId,
     totals,
     pendingCount,
+    heldCount,
+    toggleHold,
     loading,
     isItemsPending,
     get syncing() { return syncingRef.current; },
@@ -695,6 +789,7 @@ export default function useOrderManager({ tableName, posData, onClose }) {
     updateItem,
     deleteItem,
     updateItemNotes,
+    setItemModifiers,
     setCurrentItemId,
 
     isItemEditable,

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useState } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X, MoveLeft, CornerLeftUp } from 'lucide-react'
 
@@ -7,7 +7,6 @@ function Modal({
   onClose,
   title,
   children,
-  //fullscreen = true,
   size = 'lg', // 'sm' | 'md' | 'lg' | 'xl' | 'full'
   closeOnEsc = true,
   closeOnOverlay = true,
@@ -20,7 +19,7 @@ function Modal({
 }) {
   const modalRef = useRef(null);
 
-  const [fullscreen, setFullScreen] = useState(size=="full")
+  const fullscreen = size === "full"
 
   // ESC to close
   useEffect(() => {
@@ -70,7 +69,7 @@ function Modal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[1020] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in`}
+      className={`ren-portal fixed inset-0 z-[1020] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in`}
       onClick={handleOverlayClick}
     >
       <div

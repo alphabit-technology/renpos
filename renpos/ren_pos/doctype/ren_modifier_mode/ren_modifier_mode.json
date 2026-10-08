@@ -1,0 +1,119 @@
+{
+ "actions": [],
+ "autoname": "hash",
+ "creation": "2026-10-02 08:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "description": "How a part of a dish can be ordered besides normal or removed: Light, Extra, On the side\u2026 Sections with \"Ingredient modes\" offer them on each option.",
+ "field_order": [
+  "mode_name",
+  "restaurant",
+  "enabled",
+  "column_break_1",
+  "kitchen_text",
+  "price_factor",
+  "qty_factor",
+  "sort_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "mode_name",
+   "fieldtype": "Data",
+   "label": "Mode",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "Shown on the button, e.g. Light, Extra, On the side"
+  },
+  {
+   "fieldname": "restaurant",
+   "fieldtype": "Link",
+   "options": "Ren Restaurant",
+   "label": "Restaurant",
+   "in_list_view": 1,
+   "description": "Empty: every restaurant"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "kitchen_text",
+   "fieldtype": "Data",
+   "label": "Kitchen Text",
+   "reqd": 1,
+   "default": "{0}",
+   "description": "How tickets print it; {0} is the option, e.g. EXTRA {0}, {0} ON THE SIDE"
+  },
+  {
+   "fieldname": "price_factor",
+   "fieldtype": "Float",
+   "label": "Price Factor",
+   "default": "0",
+   "in_list_view": 1,
+   "description": "Share of the option's price charged on top: 1 = charge it once more (Extra), 0 = free (Light, On the side)"
+  },
+  {
+   "fieldname": "qty_factor",
+   "fieldtype": "Float",
+   "label": "Portion Factor",
+   "default": "1",
+   "in_list_view": 1,
+   "description": "How much of the ingredient is used: 0.5 = half (Light), 2 = double (Extra), 1 = the same (On the side)"
+  },
+  {
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "Order",
+   "default": "0"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-02 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Modifier Mode",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1,
+   "email": 1,
+   "role": "System Manager"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "export": 1,
+   "print": 1,
+   "share": 1,
+   "email": 1,
+   "role": "Restaurant Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User"
+  }
+ ],
+ "sort_field": "sort_order",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "mode_name",
+ "show_title_field_in_link": 1
+}

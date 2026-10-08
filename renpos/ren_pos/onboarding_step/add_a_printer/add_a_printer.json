@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Add Printer",
+ "creation": "2026-09-29 21:00:00.000000",
+ "description": "Thermal printers on your network (ESC/POS, port 9100) for kitchen tickets, bills, receipts and the cash drawer.\n\nUse **Print Test** on the printer to check it. You can skip this and print from the browser.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 4,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-05 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Add a Printer",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Add a Printer",
+ "validate_action": 0,
+ "reference_document": "Ren Printer"
+}

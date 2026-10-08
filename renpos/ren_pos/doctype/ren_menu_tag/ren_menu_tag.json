@@ -1,0 +1,92 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 05:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "istable": 0,
+ "editable_grid": 1,
+ "field_order": [
+  "tag_name",
+  "kind",
+  "column_break_1",
+  "abbreviation",
+  "color",
+  "show_as_filter"
+ ],
+ "fields": [
+  {
+   "fieldname": "tag_name",
+   "fieldtype": "Data",
+   "label": "Tag",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "kind",
+   "fieldtype": "Select",
+   "label": "Kind",
+   "options": "Dietary\nAllergen\nOther",
+   "default": "Dietary",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "abbreviation",
+   "fieldtype": "Data",
+   "label": "Short Label",
+   "description": "Shown on item cards, e.g. V, VG, GF"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "fieldname": "show_as_filter",
+   "fieldtype": "Check",
+   "label": "Filter in the POS",
+   "default": "0",
+   "description": "Adds a quick filter button to the order screen catalog"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 05:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Menu Tag",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "role": "Restaurant Manager",
+   "report": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "role": "System Manager",
+   "report": 1
+  },
+  {
+   "read": 1,
+   "role": "Restaurant User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "row_format": "Dynamic",
+ "autoname": "field:tag_name",
+ "naming_rule": "By fieldname",
+ "title_field": "tag_name"
+}

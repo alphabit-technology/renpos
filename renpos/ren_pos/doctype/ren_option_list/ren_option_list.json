@@ -1,0 +1,126 @@
+{
+ "actions": [],
+ "creation": "2026-10-03 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "editable_grid": 1,
+ "field_order": [
+  "title",
+  "column_break_rules",
+  "min_select",
+  "max_select",
+  "free_choices",
+  "use_modes",
+  "section_options",
+  "options"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "description": "Shown to waiters, e.g. \"Cooking point\", \"Sauces\", \"Choose a drink\""
+  },
+  {
+   "fieldname": "column_break_rules",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "min_select",
+   "fieldtype": "Int",
+   "label": "Minimum choices",
+   "default": "0",
+   "non_negative": 1,
+   "in_list_view": 1,
+   "description": "0 = optional. 1 or more = the waiter must choose before adding the item"
+  },
+  {
+   "fieldname": "max_select",
+   "fieldtype": "Int",
+   "label": "Maximum choices",
+   "default": "1",
+   "non_negative": 1,
+   "in_list_view": 1,
+   "description": "1 = pick one. 0 = no limit"
+  },
+  {
+   "fieldname": "free_choices",
+   "fieldtype": "Int",
+   "label": "Free choices",
+   "default": "0",
+   "non_negative": 1,
+   "description": "The first N extras chosen don't add to the price (the cheapest ones), e.g. 2 free sauces"
+  },
+  {
+   "fieldname": "use_modes",
+   "fieldtype": "Check",
+   "label": "Ingredient modes",
+   "default": "0",
+   "description": "Each chosen option offers the restaurant's modes (Light, Extra, On the side\u2026)"
+  },
+  {
+   "fieldname": "section_options",
+   "fieldtype": "Section Break",
+   "label": "Options"
+  },
+  {
+   "fieldname": "options",
+   "fieldtype": "Table",
+   "options": "Ren Item Option",
+   "label": "Options",
+   "reqd": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-03 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Option List",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "autoname": "field:title",
+ "track_changes": 1,
+ "title_field": "title",
+ "search_fields": "title",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User",
+   "select": 1,
+   "print": 1
+  }
+ ],
+ "description": "Options shared by several items (Sauces, Cooking point, Sides\u2026). Add it to an item in its Sections table."
+}

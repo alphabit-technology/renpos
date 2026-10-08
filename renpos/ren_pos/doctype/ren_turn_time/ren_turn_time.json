@@ -1,0 +1,50 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 03:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "istable": 1,
+ "editable_grid": 1,
+ "field_order": [
+  "min_party",
+  "max_party",
+  "minutes"
+ ],
+ "fields": [
+  {
+   "fieldname": "min_party",
+   "fieldtype": "Int",
+   "label": "From Guests",
+   "reqd": 1,
+   "in_list_view": 1,
+   "default": "1"
+  },
+  {
+   "fieldname": "max_party",
+   "fieldtype": "Int",
+   "label": "To Guests",
+   "reqd": 1,
+   "in_list_view": 1,
+   "default": "2"
+  },
+  {
+   "fieldname": "minutes",
+   "fieldtype": "Int",
+   "label": "Table Time (min)",
+   "reqd": 1,
+   "in_list_view": 1,
+   "default": "90"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 03:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Turn Time",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "row_format": "Dynamic"
+}

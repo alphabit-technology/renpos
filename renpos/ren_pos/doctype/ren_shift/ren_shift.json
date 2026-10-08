@@ -1,0 +1,87 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "istable": 0,
+ "editable_grid": 1,
+ "field_order": [
+  "user",
+  "pos_profile",
+  "column_break_1",
+  "clock_in",
+  "clock_out",
+  "minutes"
+ ],
+ "fields": [
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile",
+   "options": "POS Profile",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "clock_in",
+   "fieldtype": "Datetime",
+   "label": "Clock In",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "clock_out",
+   "fieldtype": "Datetime",
+   "label": "Clock Out",
+   "in_list_view": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "minutes",
+   "fieldtype": "Int",
+   "label": "Minutes",
+   "in_list_view": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Shift",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "role": "Restaurant Manager"
+  },
+  {
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "sort_field": "clock_in",
+ "sort_order": "DESC",
+ "states": [],
+ "row_format": "Dynamic",
+ "autoname": "hash",
+ "in_create": 1,
+ "title_field": "user"
+}

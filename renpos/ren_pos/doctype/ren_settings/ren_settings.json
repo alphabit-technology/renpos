@@ -1,0 +1,122 @@
+{
+ "actions": [],
+ "creation": "2020-06-07 20:39:44.010918",
+ "description": "Ren POS settings",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "general_section",
+  "only_menu_items",
+  "card_payments_tab",
+  "stripe_enabled",
+  "stripe_secret_key",
+  "stripe_readers",
+  "staff_tab",
+  "default_restaurant_role",
+  "require_clock_in",
+  "column_break_staff",
+  "allow_pin_login"
+ ],
+ "fields": [
+  {
+   "fieldname": "general_section",
+   "fieldtype": "Section Break",
+   "label": "Menu"
+  },
+  {
+   "fieldname": "card_payments_tab",
+   "fieldtype": "Tab Break",
+   "label": "Card Payments"
+  },
+  {
+   "fieldname": "stripe_enabled",
+   "fieldtype": "Check",
+   "label": "Enable Stripe Terminal",
+   "description": "Charge cards on Stripe readers (WisePOS E, S700) from the payment screen."
+  },
+  {
+   "fieldname": "stripe_secret_key",
+   "fieldtype": "Password",
+   "label": "Stripe Secret Key",
+   "depends_on": "stripe_enabled",
+   "description": "sk_live_\u2026 or sk_test_\u2026 (a restricted key with Terminal and PaymentIntents write access is enough)"
+  },
+  {
+   "fieldname": "stripe_readers",
+   "fieldtype": "Table",
+   "options": "Ren Card Reader",
+   "label": "Readers",
+   "depends_on": "stripe_enabled"
+  },
+  {
+   "fieldname": "only_menu_items",
+   "fieldtype": "Check",
+   "label": "Sell only items on the menu",
+   "description": "Refuse items that aren't on the table's menu (the catalog already shows only those)."
+  },
+  {
+   "fieldname": "staff_tab",
+   "fieldtype": "Tab Break",
+   "label": "Staff"
+  },
+  {
+   "fieldname": "default_restaurant_role",
+   "fieldtype": "Link",
+   "label": "Default Role",
+   "options": "Ren Role",
+   "description": "Role of users with no role in their POS Profile permissions"
+  },
+  {
+   "fieldname": "require_clock_in",
+   "fieldtype": "Check",
+   "label": "Staff must clock in to take orders"
+  },
+  {
+   "fieldname": "column_break_staff",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "allow_pin_login",
+   "fieldtype": "Check",
+   "label": "PIN login on registered terminals",
+   "description": "Staff switch users with their PIN on terminals a manager registered"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-05 08:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Restaurant Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

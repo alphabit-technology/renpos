@@ -1,0 +1,231 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-02-07 03:48:44.400712",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "column_break_2",
+  "description",
+  "color",
+  "section_break_10",
+  "data_style",
+  "section_break_14",
+  "section_break_12",
+  "production_center_group",
+  "section_break_22",
+  "restricted_to_rooms",
+  "restricted_rooms",
+  "restricted_to_tables_container",
+  "restricted_to_tables",
+  "restricted_tables",
+  "group_items_by_order",
+  "whole_order",
+  "floor",
+  "column_break_tbhc",
+  "section_break_ebqj",
+  "section_break_vhjb",
+  "company",
+  "column_break_zxvf",
+  "floor_description",
+  "printer",
+  "status_flow"
+ ],
+ "fields": [
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "Color"
+  },
+  {
+   "fieldname": "section_break_10",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "data_style",
+   "fieldtype": "Code",
+   "label": "Data Style"
+  },
+  {
+   "fieldname": "section_break_14",
+   "fieldtype": "Section Break",
+   "label": "Kitchen Flow"
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "production_center_group",
+   "fieldtype": "Table",
+   "label": "Item Group",
+   "options": "Ren Station Item Group"
+  },
+  {
+   "fieldname": "section_break_22",
+   "fieldtype": "Section Break",
+   "label": "Only some rooms or tables",
+   "collapsible": 1,
+   "description": "The station only gets the orders of these rooms and / or tables (for example a bar that serves the terrace). Off: every room of its floor."
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_rooms",
+   "fieldtype": "Check",
+   "label": "Only these rooms"
+  },
+  {
+   "fieldname": "restricted_rooms",
+   "fieldtype": "Table",
+   "label": "Rooms",
+   "options": "Ren Station Room",
+   "depends_on": "restricted_to_rooms"
+  },
+  {
+   "fieldname": "restricted_to_tables_container",
+   "fieldtype": "Section Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "restricted_to_tables",
+   "fieldtype": "Check",
+   "label": "Only these tables"
+  },
+  {
+   "fieldname": "restricted_tables",
+   "fieldtype": "Table",
+   "label": "Tables",
+   "options": "Ren Station Table",
+   "depends_on": "restricted_to_tables"
+  },
+  {
+   "default": "0",
+   "fieldname": "group_items_by_order",
+   "fieldtype": "Check",
+   "label": "Group Items By Order"
+  },
+  {
+   "fieldname": "whole_order",
+   "fieldtype": "Check",
+   "label": "Wait for the whole order",
+   "default": "0",
+   "depends_on": "group_items_by_order",
+   "description": "Dispatch / expo: the order shows up as soon as it is sent, with its progress, and the button only works once every item reached this station (for example a delivery station from Completed: Completed -> On the way -> Delivered)."
+  },
+  {
+   "fieldname": "floor",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Floor",
+   "options": "Ren Floor"
+  },
+  {
+   "fieldname": "column_break_tbhc",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_ebqj",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "section_break_vhjb",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fetch_from": "floor.company",
+   "fieldname": "company",
+   "fieldtype": "Read Only",
+   "label": "Company"
+  },
+  {
+   "fieldname": "column_break_zxvf",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "floor.description",
+   "fieldname": "floor_description",
+   "fieldtype": "Read Only",
+   "label": "Floor Description"
+  },
+  {
+   "fieldname": "printer",
+   "fieldtype": "Link",
+   "options": "Ren Printer",
+   "label": "Kitchen Ticket Printer",
+   "description": "Items this station prepares are printed here when an order is sent"
+  },
+  {
+   "fieldname": "status_flow",
+   "fieldtype": "Table MultiSelect",
+   "options": "Ren Station Status Step",
+   "label": "Status Flow",
+   "description": "In order. The first status is how items arrive (Sent); each tap moves them to the next one; at the last one they leave the station. Example: Sent \u2192 Processing \u2192 Ready"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-05 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Station",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "select": 1,
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User",
+   "select": 1,
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "search_fields": "floor_description,description",
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "description",
+ "track_changes": 1
+}

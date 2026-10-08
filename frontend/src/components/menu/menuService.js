@@ -1,41 +1,29 @@
 /**
  * menuService.js — Menu CRUD.
  *
- * Parent doctype (Restaurant Menu): frappe.client.*
+ * Parent doctype (Ren Menu): frappe.client.*
  * Child table queries: whitelisted methods in restaurant_menu.py
  */
 
-const DOCTYPE = "Restaurant Menu";
-// Adjust this path to match your app structure
-const METHOD_PATH = "restaurant_management.restaurant_management.doctype.restaurant_menu.restaurant_menu";
+import { callWithApproval } from "@/utils/approval";
 
+const DOCTYPE = "Ren Menu";
+// Adjust this path to match your app structure
+const METHOD_PATH = "renpos.ren_pos.doctype.ren_menu.ren_menu";
+
+// edit_menu is a role action: a manager PIN is asked when needed
 function call(method, args) {
-  return new Promise((resolve, reject) => {
-    frappe.call({
-      method,
-      args,
-      async: true,
-      callback: (r) => resolve(r?.message ?? r),
-      error: (err) => reject(err),
-    });
-  });
+  return callWithApproval(method, args);
 }
 
 // ─── Menu List (parent doctype — get_list works fine) ────
 
+const MENUS = "renpos.api.menus";
+
+// is_active: the restaurant's menu (the star); rooms: rooms with this menu of their own
 export function fetchMenuList(company, opts = {}) {
   const { limit = 20, start = 0, search = "" } = opts;
-  const filters = { company };
-  if (search) filters.menu_name = ["like", `%${search}%`];
-
-  return call("frappe.client.get_list", {
-    doctype: DOCTYPE,
-    filters,
-    fields: ["name", "menu_name", "company", "enabled", "is_default", "total_items"],
-    order_by: "is_default desc, menu_name asc",
-    limit_page_length: limit,
-    limit_start: start,
-  });
+  return call(`${MENUS}.list_menus`, { company, search, limit, start }).then((r) => r?.menus || []);
 }
 
 export function fetchMenuCount(company, search = "") {
@@ -73,10 +61,9 @@ export function deleteMenu(menuName) {
 
 // ─── Set Default / Toggle Enabled ───────────────
 
-export async function setDefault(menuName) {
-  const doc = await call("frappe.client.get", { doctype: DOCTYPE, name: menuName });
-  doc.is_default = 1;
-  return call("frappe.client.save", { doc });
+// The star: this restaurant sells from this menu (also the company default)
+export function setDefault(menuName) {
+  return call(`${MENUS}.set_active_menu`, { menu: menuName });
 }
 
 export async function toggleEnabled(menuName, currentEnabled) {
@@ -87,28 +74,11 @@ export async function toggleEnabled(menuName, currentEnabled) {
 
 // ─── Single Item Add/Remove (immediate save via parent doc) ──
 
-export async function addMenuItem(menuName, itemCode) {
-  const doc = await call("frappe.client.get", { doctype: DOCTYPE, name: menuName });
-  const exists = (doc.items || []).some((r) => r.item === itemCode);
-  if (exists) return doc;
-
-  doc.items = doc.items || [];
-  doc.items.push({
-    doctype: "Restaurant Menu Item",
-    parent: menuName,
-    parenttype: DOCTYPE,
-    parentfield: "items",
-    item: itemCode,
-    enabled: 1,
-    idx: doc.items.length + 1,
-  });
-
-  return call("frappe.client.save", { doc });
+// adds the item, or turns a disabled row back on
+export function addMenuItem(menuName, itemCode) {
+  return call(`${MENUS}.set_menu_item`, { menu: menuName, item_code: itemCode, enabled: 1 });
 }
 
-export async function removeMenuItem(menuName, itemCode) {
-  const doc = await call("frappe.client.get", { doctype: DOCTYPE, name: menuName });
-  doc.items = (doc.items || []).filter((r) => r.item !== itemCode);
-  doc.items.forEach((r, i) => { r.idx = i + 1; });
-  return call("frappe.client.save", { doc });
+export function removeMenuItem(menuName, itemCode) {
+  return call(`${MENUS}.set_menu_item`, { menu: menuName, item_code: itemCode, enabled: 0 });
 }

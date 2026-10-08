@@ -4,15 +4,15 @@ include *.json
 include *.md
 include *.py
 include *.txt
-recursive-include restaurant_management *.css
-recursive-include restaurant_management *.csv
-recursive-include restaurant_management *.html
-recursive-include restaurant_management *.ico
-recursive-include restaurant_management *.js
-recursive-include restaurant_management *.json
-recursive-include restaurant_management *.md
-recursive-include restaurant_management *.png
-recursive-include restaurant_management *.py
-recursive-include restaurant_management *.svg
-recursive-include restaurant_management *.txt
-recursive-exclude restaurant_management *.pyc
+recursive-include renpos *.css
+recursive-include renpos *.csv
+recursive-include renpos *.html
+recursive-include renpos *.ico
+recursive-include renpos *.js
+recursive-include renpos *.json
+recursive-include renpos *.md
+recursive-include renpos *.png
+recursive-include renpos *.py
+recursive-include renpos *.svg
+recursive-include renpos *.txt
+recursive-exclude renpos *.pyc

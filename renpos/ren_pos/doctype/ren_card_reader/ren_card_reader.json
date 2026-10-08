@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "creation": "2026-09-29 18:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "label",
+  "reader_id",
+  "pos_profile",
+  "mode_of_payment"
+ ],
+ "fields": [
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Label",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "e.g. Front register, Bar"
+  },
+  {
+   "fieldname": "reader_id",
+   "fieldtype": "Data",
+   "label": "Stripe Reader ID",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "tmr_\u2026  (Stripe Dashboard \u2192 Terminal \u2192 Readers)"
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "options": "POS Profile",
+   "label": "POS Profile",
+   "in_list_view": 1,
+   "description": "Empty: available in every POS Profile"
+  },
+  {
+   "fieldname": "mode_of_payment",
+   "fieldtype": "Link",
+   "options": "Mode of Payment",
+   "label": "Mode of Payment",
+   "reqd": 1,
+   "in_list_view": 1,
+   "description": "How the charge is recorded on the invoice (e.g. Credit Card)"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-29 18:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Card Reader",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1
+}

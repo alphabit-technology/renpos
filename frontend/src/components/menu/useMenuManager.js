@@ -10,6 +10,7 @@ import {
   removeMenuItem,
   fetchMenuItemCodes,
 } from "./menuService";
+import { getUrlParam, setUrlParams } from "@/utils/urlState";
 
 const PAGE_SIZE = 20;
 
@@ -70,6 +71,7 @@ export function useMenuManager(company) {
   const selectMenu = useCallback(async (menuName) => {
     if (!menuName) return;
     setActiveMenuName(menuName);
+    setUrlParams({ menu: menuName });
     try {
       const codes = await fetchMenuItemCodes(menuName);
       if (alive.current) setMenuItemCodes(new Set(codes));
@@ -87,7 +89,9 @@ export function useMenuManager(company) {
 
     loadMenuList(0, "").then((list) => {
       if (!alive.current || !list?.length || didAutoSelect.current) return;
-      const def = list.find((m) => m.is_default) || list[0];
+      const fromUrl = getUrlParam("menu");
+      const def = list.find((m) => m.name === fromUrl) || list.find((m) => m.is_active)
+        || list.find((m) => m.is_default) || list[0];
       didAutoSelect.current = true;
       selectMenu(def.name);
     });
@@ -115,6 +119,9 @@ export function useMenuManager(company) {
       } else {
         await addMenuItem(activeMenuName, code);
       }
+      // show what the server saved, not what we assumed
+      const codes = await fetchMenuItemCodes(activeMenuName);
+      if (alive.current) setMenuItemCodes(new Set(codes));
       // Refresh menu list to update total_items count
       loadMenuList(listPage, listSearch);
     } catch (err) {
@@ -177,7 +184,7 @@ export function useMenuManager(company) {
 
   const setAsDefault = useCallback(async (menuName) => {
     setMenus((prev) =>
-      prev.map((m) => ({ ...m, is_default: m.name === menuName ? 1 : 0 }))
+      prev.map((m) => ({ ...m, is_default: m.name === menuName ? 1 : 0, is_active: m.name === menuName ? 1 : 0 }))
     );
     try {
       await setDefaultSvc(menuName);

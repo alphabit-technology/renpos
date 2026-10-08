@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 const PAGE_SIZE = 50;
 // Adjust to match your app structure
-const METHOD_PATH = "restaurant_management.restaurant_management.doctype.restaurant_menu.restaurant_menu";
+const METHOD_PATH = "renpos.ren_pos.doctype.ren_menu.ren_menu";
 
 /**
  * useItemTree — Item catalog with server-side pagination and menu filtering.
@@ -12,10 +12,13 @@ const METHOD_PATH = "restaurant_management.restaurant_management.doctype.restaur
  *
  * @param {object} opts
  * @param {boolean}  opts.enabled    - Mount/unmount control
- * @param {string}   opts.menuName   - If set, only load items in this Restaurant Menu
+ * @param {string}   opts.menuName   - If set, only load items in this Ren Menu
  * @param {string}   opts.priceList  - Price list for pricing (optional)
+ * @param {boolean}  opts.menuMode   - Menu Manager: the list stays put while
+ *                                     items are checked / unchecked (only the
+ *                                     check marks change), so nothing jumps
  */
-export function useItemTree({ enabled = true, menuName = null, priceList = null } = {}) {
+export function useItemTree({ enabled = true, menuName = null, priceList = null, restaurant = null, menuMode = false } = {}) {
   // ── Groups ──
   const [allGroups, setAllGroups] = useState([]);
   const [loadingGroups, setLoadingGroups] = useState(true);
@@ -40,9 +43,11 @@ export function useItemTree({ enabled = true, menuName = null, priceList = null 
   const loadGroups = useCallback(async () => {
     setLoadingGroups(true);
     try {
-      // restaurant endpoint: waiters have no read permission on Item Group
+      // restaurant endpoint: waiters have no read permission on Item Group.
+      // With a menu, only the groups that have items on it (no empty tabs).
       const r = await frappe.call({
         method: `${METHOD_PATH}.get_item_groups`,
+        args: menuName && menuName !== "__not_assigned_menu__" ? { menu_name: menuName } : {},
       });
       setAllGroups(r.message || []);
     } catch (err) {
@@ -50,7 +55,7 @@ export function useItemTree({ enabled = true, menuName = null, priceList = null 
     } finally {
       setLoadingGroups(false);
     }
-  }, []);
+  }, [menuName]);
 
   // ── Resolve tab to leaf group names ────────────
 
@@ -86,8 +91,8 @@ export function useItemTree({ enabled = true, menuName = null, priceList = null 
           limit_page_length: PAGE_SIZE,
         };
 
-        // Menu filter
-        if (menuName) {
+        // Menu filter (no menu set up: every item can be sold)
+        if (menuName && menuName !== "__not_assigned_menu__") {
           args.menu_name = menuName;
         }
 
@@ -97,9 +102,9 @@ export function useItemTree({ enabled = true, menuName = null, priceList = null 
           args.item_groups = JSON.stringify(leafGroups);
         }
 
-        // Item type
+        // Ren Menu Tag filter (Vegetarian, Gluten-free...)
         if (itemType) {
-          args.item_type = itemType;
+          args.tag = itemType;
         }
 
         // Search
@@ -153,13 +158,65 @@ export function useItemTree({ enabled = true, menuName = null, priceList = null 
     if (enabled) loadGroups();
   }, [enabled, loadGroups]);
 
-  // Reset and reload when filters change
+  // Reset and reload when filters change. Keyed on the group names: groups
+  // reloaded after a menu edit are a new array with the same content, and
+  // treating that as a filter change used to drop the pages already loaded.
+  const groupsKey = useMemo(() => allGroups.map((g) => g.name).join("|"), [allGroups]);
   useEffect(() => {
     if (allGroups.length === 0) return;
     pageRef.current = 0;
     setHasMore(true);
     loadItems(0, false);
-  }, [activeTab, itemType, search, menuName, allGroups]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeTab, itemType, search, menuName, groupsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reload what is already on screen (every page loaded so far) in place
+  const refreshLoaded = useCallback(async () => {
+    if (allGroups.length === 0) return;
+    const pages = pageRef.current + 1;
+    const rid = ++requestId.current;
+    try {
+      const args = { limit_start: 0, limit_page_length: pages * PAGE_SIZE };
+      if (menuName && menuName !== "__not_assigned_menu__") args.menu_name = menuName;
+      const leafGroups = getLeafGroupNames(activeTab);
+      if (leafGroups) args.item_groups = JSON.stringify(leafGroups);
+      if (itemType) args.tag = itemType;
+      if (search.trim()) args.search = search.trim();
+      if (priceList) args.price_list = priceList;
+      const r = await frappe.call({ method: `${METHOD_PATH}.get_items_for_tree`, args });
+      if (rid !== requestId.current) return;
+      const data = r.message || [];
+      setItems(data);
+      setHasMore(data.length >= pages * PAGE_SIZE);
+    } catch (err) {
+      console.error("[ItemTree] refreshLoaded:", err);
+    }
+  }, [allGroups, activeTab, itemType, search, menuName, priceList, getLeafGroupNames]);
+  const refreshRef = useRef(refreshLoaded);
+  useEffect(() => { refreshRef.current = refreshLoaded; }, [refreshLoaded]);
+
+  // Sold out / back in stock on any screen; menu edited
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const onAvailability = (d) => {
+      if (!d?.item_code || (restaurant && d.restaurant && d.restaurant !== restaurant)) return;
+      setItems((prev) => prev.map((i) => (i.item_code === d.item_code ? { ...i, is_available: !d.sold_out } : i)));
+    };
+    const onMenu = (d) => {
+      // an item edited in the Menu Manager's editor: its card changes everywhere
+      if (d?.item) { loadGroups(); refreshRef.current(); return; }
+      if (d?.menu && d.menu !== menuName) return;
+      loadGroups();
+      // Menu Manager: an unchecked item stays on screen (unchecked) so it can be
+      // put back; the order screen refreshes its catalog in place
+      if (!menuMode) refreshRef.current();
+    };
+    frappe.realtime.on("menu_availability", onAvailability);
+    frappe.realtime.on("menu_changed", onMenu);
+    return () => {
+      frappe.realtime.off("menu_availability", onAvailability);
+      frappe.realtime.off("menu_changed", onMenu);
+    };
+  }, [enabled, menuName, menuMode, loadGroups, restaurant]);
 
   // ── Derived data ───────────────────────────────
 

@@ -3,6 +3,7 @@ import { FloorsProvider } from './context/FloorsContext'
 import { RoomsProvider } from './context/RoomsContext'
 import RestaurantLayout from './components/layout/RestaurantLayout'
 import { useState, useEffect } from 'react'
+import GuestOrderAlerts from './components/order/GuestOrderAlerts'
 import './index.css'
 
 function App({posWrapper}) {
@@ -19,6 +20,7 @@ function App({posWrapper}) {
       <FloorsProvider>
         <RoomsProvider>
           <RestaurantLayout />
+          <GuestOrderAlerts />
         </RoomsProvider>
       </FloorsProvider>
     </RestaurantProvider>

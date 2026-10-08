@@ -1,0 +1,395 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2020-04-03 21:45:19.214036",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "table",
+  "naming_series",
+  "status",
+  "room",
+  "customer",
+  "dinners",
+  "link_invoice",
+  "amount",
+  "entry_items",
+  "discount",
+  "tax",
+  "amended_from",
+  "pos_profile",
+  "restaurant",
+  "taxes_and_charges",
+  "selling_price_list",
+  "company",
+  "table_description",
+  "room_description",
+  "customer_name",
+  "address",
+  "notes",
+  "show_in_pos",
+  "ordered_time",
+  "ren_usage_entry",
+  "ren_origin",
+  "ren_guest_name",
+  "ren_guest_phone",
+  "ren_pickup_time",
+  "ren_guest_token",
+  "section_delivery",
+  "ren_delivery",
+  "ren_delivery_address",
+  "ren_delivery_zip",
+  "column_break_delivery",
+  "ren_delivery_zone",
+  "ren_delivery_fee",
+  "ren_delivery_minimum",
+  "ren_deliver_by",
+  "section_dispatch",
+  "ren_driver",
+  "ren_driver_name",
+  "column_break_dispatch",
+  "ren_dispatched_at",
+  "ren_delivered_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "table",
+   "fieldtype": "Link",
+   "label": "Table",
+   "options": "Ren Table"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "OR-.YYYY.-"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Link",
+   "label": "Status",
+   "options": "Ren Order Status"
+  },
+  {
+   "fetch_from": "table.room",
+   "fieldname": "room",
+   "fieldtype": "Read Only",
+   "label": "Room"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "dinners",
+   "fieldtype": "Int",
+   "label": "Dinners"
+  },
+  {
+   "fieldname": "link_invoice",
+   "fieldtype": "Data",
+   "label": "Invoice",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "label": "Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "entry_items",
+   "fieldtype": "Table",
+   "label": "Entry Items",
+   "options": "Ren Order Item"
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Currency",
+   "label": "Discount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "tax",
+   "fieldtype": "Currency",
+   "label": "Tax",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Ren Order",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "label": "POS Profile",
+   "options": "POS Profile"
+  },
+  {
+   "fieldname": "restaurant",
+   "fieldtype": "Link",
+   "label": "Restaurant",
+   "options": "Ren Restaurant",
+   "read_only": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "taxes_and_charges",
+   "fieldtype": "Data",
+   "label": "Taxes and Charges"
+  },
+  {
+   "fieldname": "selling_price_list",
+   "fieldtype": "Data",
+   "label": "Selling Price List"
+  },
+  {
+   "fetch_from": "table.company",
+   "fieldname": "company",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Company",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "table.description",
+   "fieldname": "table_description",
+   "fieldtype": "Read Only",
+   "label": "Table Description"
+  },
+  {
+   "fetch_from": "table.room_description",
+   "fieldname": "room_description",
+   "fieldtype": "Read Only",
+   "label": "Room Description"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Link",
+   "label": "Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text",
+   "label": "Notes"
+  },
+  {
+   "default": "1",
+   "fieldname": "show_in_pos",
+   "fieldtype": "Check",
+   "label": "Show in POS"
+  },
+  {
+   "fieldname": "ordered_time",
+   "fieldtype": "Datetime",
+   "label": "Ordered Tyme"
+  },
+  {
+   "fieldname": "ren_usage_entry",
+   "fieldtype": "Data",
+   "label": "Ingredients Taken Out",
+   "read_only": 1,
+   "no_copy": 1,
+   "description": "Stock Entry that took this order's recipe ingredients out of stock (- = nothing to take out)"
+  },
+  {
+   "fieldname": "ren_origin",
+   "fieldtype": "Select",
+   "label": "Ordered By",
+   "options": "\nOnline\nTable QR\nPhone",
+   "read_only": 1,
+   "no_copy": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "depends_on": "ren_origin",
+   "fieldname": "ren_guest_name",
+   "fieldtype": "Data",
+   "label": "Guest Name",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "depends_on": "ren_origin",
+   "fieldname": "ren_guest_phone",
+   "fieldtype": "Data",
+   "label": "Guest Phone",
+   "options": "Phone",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "depends_on": "ren_pickup_time",
+   "fieldname": "ren_pickup_time",
+   "fieldtype": "Datetime",
+   "label": "Pickup Time",
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "ren_guest_token",
+   "fieldtype": "Data",
+   "label": "Guest Link",
+   "hidden": 1,
+   "read_only": 1,
+   "no_copy": 1
+  },
+  {
+   "fieldname": "section_delivery",
+   "fieldtype": "Section Break",
+   "label": "Delivery",
+   "depends_on": "ren_delivery"
+  },
+  {
+   "fieldname": "ren_delivery",
+   "fieldtype": "Check",
+   "label": "Delivery",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ren_delivery_address",
+   "fieldtype": "Small Text",
+   "label": "Deliver to",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ren_delivery_zip",
+   "fieldtype": "Data",
+   "label": "ZIP code",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_delivery",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ren_delivery_zone",
+   "fieldtype": "Data",
+   "label": "Zone",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ren_delivery_fee",
+   "fieldtype": "Currency",
+   "label": "Delivery fee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ren_delivery_minimum",
+   "fieldtype": "Currency",
+   "label": "Minimum order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ren_deliver_by",
+   "fieldtype": "Datetime",
+   "label": "Deliver by",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_dispatch",
+   "fieldtype": "Section Break",
+   "label": "Dispatch",
+   "depends_on": "eval:doc.ren_driver || doc.ren_driver_name || doc.ren_dispatched_at"
+  },
+  {
+   "fieldname": "ren_driver",
+   "fieldtype": "Link",
+   "label": "Driver",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ren_driver_name",
+   "fieldtype": "Data",
+   "label": "Driver name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_dispatch",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "ren_dispatched_at",
+   "fieldtype": "Datetime",
+   "label": "Dispatched at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "ren_delivered_at",
+   "fieldtype": "Datetime",
+   "label": "Delivered at",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-05 20:10:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Order",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant User",
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

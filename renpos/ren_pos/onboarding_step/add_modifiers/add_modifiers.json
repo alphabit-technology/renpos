@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Create an Option List",
+ "creation": "2026-09-29 21:00:00.000000",
+ "description": "Options are set on each Item, in its **Restaurant** tab: components (Included or Optional), instructions for the kitchen (cooking point) and sections with rules (choose 1, up to 3, 2 free).\n\nAn **Option List** holds options shared by many items (Sauces, Cooking point): add it to a section of each item. Sizes are ERPNext Item Variants.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 3,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-05 12:40:00.000000",
+ "modified_by": "Administrator",
+ "name": "Add Modifiers",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Add Modifiers",
+ "validate_action": 0,
+ "reference_document": "Ren Option List"
+}

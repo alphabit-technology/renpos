@@ -1,4 +1,0 @@
-[pre_model_sync]
-
-[post_model_sync]
-restaurant_management.patches.v2_0.fill_layout_company

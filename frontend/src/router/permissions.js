@@ -1,22 +1,22 @@
 /**
  * Restaurant permission helper
- * Uses server-resolved permissions from RestaurantSettings.settings_data()
+ * Uses the permissions the server sends with init_restaurant
  */
 
-let _rm = null;
+let _ren = null;
 
-export function initPermissions(rm) {
-  _rm = rm;
+export function initPermissions(ren) {
+  _ren = ren;
 }
 
-// ─── Map PERMISSIONS doctype → RM.permissions key ────────────
+// ─── Map PERMISSIONS doctype → REN.permissions key ────────────
 
 const PERM_KEY_MAP = {
   'Ren Floor':      'ren_floor',
   'Ren Room':       'ren_room',
   'Ren Table':      'ren_table',
   'Ren Station':    'ren_station',
-  'Table Order':    'order',
+  'Ren Order':    'order',
   'Sales Invoice':  'invoice',
 };
 
@@ -43,7 +43,7 @@ export function checkPermission(rule) {
 
   if (doctype && perm) {
     // Permissions come from the server keyed by doctype (init_restaurant).
-    return _rm?.permissions?.[doctype]?.[perm]
+    return _ren?.permissions?.[doctype]?.[perm]
   }
 
   if (roles) {
@@ -81,13 +81,13 @@ export const PERMISSIONS = {
   'station.create':  { doctype: 'Ren Station', perm: 'create' },
   'station.delete':  { doctype: 'Ren Station', perm: 'delete' },
 
-  'order':           { doctype: 'Table Order', perm: 'read' },
-  'order.create':    { doctype: 'Table Order', perm: 'create' },
-  'order.write':     { doctype: 'Table Order', perm: 'write' },
+  'order':           { doctype: 'Ren Order', perm: 'read' },
+  'order.create':    { doctype: 'Ren Order', perm: 'create' },
+  'order.write':     { doctype: 'Ren Order', perm: 'write' },
 
-  'menu':           { doctype: 'Restaurant Menu', perm: 'read' },
-  'menu.create':    { doctype: 'Restaurant Menu', perm: 'create' },
-  'menu.write':     { doctype: 'Restaurant Menu', perm: 'write' }
+  'menu':           { doctype: 'Ren Menu', perm: 'read' },
+  'menu.create':    { doctype: 'Ren Menu', perm: 'create' },
+  'menu.write':     { doctype: 'Ren Menu', perm: 'write' }
 };
 
 export function can(name) {
@@ -113,61 +113,3 @@ export const generalCustomAccess = () => {
   return false;
 };
 
-export const canOpenOrderManage = (table) => {
-  if (frappe.session.user === "Administrator" || canPay()) return true;
-  if(!_rm) return false;
-
-  if (table.current_user !== frappe.session.user && table.orders_count > 0) {
-    if (_rm.restrictions?.restricted_to_owner_table) {
-      return checkPermissions("order", "manage");
-    }
-  }
-
-  return true;
-}
-
-export const canPay = () => {
-  return checkPermissions("invoice", "create");
-}
-
-export const checkPermissions = (model = null, action, record = null) => {
-  if (frappe.session.user === "Administrator") return true;
-  if(!_rm) return false;
-
-  let r = false;
-
-  if (model != null) {
-    let modelInPermissions = _rm.permissions[model];
-    if (typeof modelInPermissions != "undefined" && typeof modelInPermissions[action] !== "undefined") {
-      r = _rm.permissions[model][action];
-    }
-
-    const exception = () => {
-      r = false;
-      (_rm.exceptions || []).map(e => {
-        r = e[model + "_" + action] === 1;
-      });
-    }
-
-    if (record == null) {
-      if (!r) {
-        exception();
-      }
-    } else {
-      if (record.data.owner !== frappe.session.user) {
-        if (model === "order" && _rm.restrictions?.restricted_to_owner_order) {
-          exception();
-        }
-        if (model === "table" && _rm.restrictions?.restricted_to_owner_table) {
-          exception();
-        }
-      }
-    }
-
-    if (model === 'pos' && r) {
-      r = _rm.pos_profile?.["allow_" + action] === 1;
-    }
-  }
-
-  return r;
-}

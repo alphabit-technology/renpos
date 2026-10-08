@@ -1,0 +1,74 @@
+{
+ "actions": [],
+ "creation": "2026-10-05 09:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "zone_name",
+  "zip_codes",
+  "column_break_fee",
+  "fee",
+  "minimum_order",
+  "eta_minutes",
+  "active"
+ ],
+ "fields": [
+  {
+   "fieldname": "zone_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Zone",
+   "reqd": 1
+  },
+  {
+   "fieldname": "zip_codes",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "ZIP codes",
+   "reqd": 1,
+   "description": "Separated by commas or spaces. A trailing * covers a prefix: 021* is every ZIP code that starts with 021."
+  },
+  {
+   "fieldname": "column_break_fee",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "fee",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Delivery fee"
+  },
+  {
+   "fieldname": "minimum_order",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Minimum order"
+  },
+  {
+   "default": "45",
+   "fieldname": "eta_minutes",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Delivery time (minutes)"
+  },
+  {
+   "default": "1",
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active"
+  }
+ ],
+ "istable": 1,
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-10-05 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Delivery Zone",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

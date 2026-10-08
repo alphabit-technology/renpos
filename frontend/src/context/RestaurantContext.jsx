@@ -1,33 +1,32 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { usePersistedState } from '@/hooks/usePersistedState'
 import {initPermissions, generalCustomAccess} from "@/router/permissions"
-import {createOpeningVoucher} from "./voucher.js"
 import { useFrappeRealtime } from '@/hooks/useFrappeRealtime';
 
 
 const RestaurantContext = createContext(null)
-const API_BASE = "restaurant_management.restaurant_management.page.restaurant_manage.restaurant_manage."
 
-export function RestaurantProvider({ children, posWrapper }) {
+export function RestaurantProvider({ children }) {
 
   const [editing, setEditing] = usePersistedState('ren_editing', null)
-  const [RM, setRM] = useState({})
+  const [REN, setREN] = useState({})
   const [ready, setReady] = useState(false)
   const [currentTable, setCurrentTable] = usePersistedState("ren_current_table", null)
-  const [POS, setPOS] = useState(null);
   const [settingsUpdate, setSettingsUpdate] = useState(0)
   const [startupError, setStartupError] = useState(null)
 
   useEffect(() => {
-    initPermissions(RM)
-    if(!generalCustomAccess(RM)) setEditing(false)
-  }, [RM])
+    initPermissions(REN)
+    // only once the restaurant data is in: before that REN is {} and the saved
+    // edit mode would be wiped on every reload
+    if (REN?.permissions && !generalCustomAccess(REN)) setEditing(false)
+  }, [REN])
 
 
   const callMethod = async (Model, Name, Method, { args = {}, ...options } = {}) => {
     try {
       const response = await frappe.call({
-        method: "restaurant_management.api.ren.call",
+        method: "renpos.api.ren.call",
         args: { model: Model, name: Name, method: Method, args },
         freeze: !!options.freeze
       })
@@ -44,68 +43,16 @@ export function RestaurantProvider({ children, posWrapper }) {
     }
   }
 
-  useFrappeRealtime("check_floors", () => {
-    callMethod("Ren Restaurant", RM?.restaurant.name, "load_floors").then(r => {
-      setRM(prev => {
-        return { ...prev, floors: r };
-      });
-    })
-  }, [RM?.restaurant?.name]);
-
-  const callApi = async (method, args = {}) => {
-    try {
-      const response = await frappe.call({
-        method: `${API_BASE}${method}`,
-        args
-      })
-      return response.message
-    } catch (error) {
-      console.error(`API Error (${method}):`, error)
-      throw error
-    }
-  }
-
-  const handleSetPOS = () => {
-
-  }
-
-  const checkOpeningEntry = async () => {
-    return new Promise((resolve) => {
-      frappe.call("erpnext.selling.page.point_of_sale.point_of_sale.check_opening_entry", {
-        user: frappe.session.user,
-      }).then(async r => {
-        if(r.message.length){
-          resolve(true);
-        }else{
-          resolve(await createOpeningVoucher());
-        }
-      })
-    })
-	}
-
   const loadSettingData = () => {
     // frappe.call (not xcall): its error callback gets the server message
     new Promise((resolve, reject) => frappe.call({
-      method: "restaurant_management.api.restaurant.init_restaurant",
+      method: "renpos.api.restaurant.init_restaurant",
       args: {},
       callback: (res) => resolve(res.message),
       error: reject,
     })).then(r => {
-      // Startup check: which frontend build and backend version are running
-      console.info(
-        "%c[Restaurant]%c started",
-        "background:#2563eb;color:#fff;padding:2px 6px;border-radius:3px", "",
-        {
-          frontend_build: __RM_BUILD__,
-          backend: r?._server || "OLD backend (no _server marker)",
-          realtime_connected: !!frappe.realtime?.socket?.connected,
-        }
-      )
-      const rm = { ...r }
-      window.cur_pos = rm.pos;
-      rm.crm_settings = {}
-      setRM(rm)
-      setSettingsUpdate(settingsUpdate+1)
+      setREN({ ...r })
+      setSettingsUpdate((v) => v + 1)
       setStartupError(null)
       setReady(true)
     }).catch((e) => {
@@ -118,15 +65,27 @@ export function RestaurantProvider({ children, posWrapper }) {
     loadSettingData();
   }, [])
 
-  useFrappeRealtime("on_pos_profile_change", () => {
-    loadSettingData();
-  }, [RM])
+  // A print job of this user failed (printer off, paper out, wrong IP…)
+  useFrappeRealtime("restaurant_print", (data) => {
+    if (!data || data.status !== "Failed" || data.owner !== frappe.session.user) return;
+    frappe.confirm(
+      __("Printer {0} could not print the {1} ({2}). Try again?", [data.printer, __(data.type), data.error || ""]),
+      () => frappe.call({ method: "renpos.api.printing.retry_job", args: { job: data.job } })
+    );
+  });
+
+  // the setup changed (restaurant, roles, access, floors, stations…; api/sync.py):
+  // reload the restaurant data; settingsUpdate tells the rest of the screen
+  const configTimer = useRef(0)
+  useFrappeRealtime("ren_config", () => {
+    clearTimeout(configTimer.current)
+    configTimer.current = setTimeout(loadSettingData, 400)
+  }, [])
 
   return (
     <RestaurantContext.Provider value={{
-      RM, ready, editing, setEditing, callMethod, callApi, API_BASE, currentTable, setCurrentTable,
-      POS, handleSetPOS, checkOpeningEntry,
-      restaurant: RM.restaurant,
+      REN, ready, editing, setEditing, callMethod, currentTable, setCurrentTable,
+      restaurant: REN.restaurant,
       settingsUpdate
     }}>
       {ready ? children : startupError ? (

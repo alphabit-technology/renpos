@@ -1,0 +1,21 @@
+{
+ "action": "Update Settings",
+ "action_label": "Review Settings",
+ "creation": "2026-09-29 21:00:00.000000",
+ "description": "Order rules, permissions and **Card Payments**: add your Stripe secret key and your readers to charge cards from the payment screen.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 6,
+ "is_complete": 0,
+ "is_single": 1,
+ "is_skipped": 0,
+ "modified": "2026-10-05 12:40:00.000000",
+ "modified_by": "Administrator",
+ "name": "Review Ren Settings",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 0,
+ "title": "Review Settings",
+ "validate_action": 0,
+ "reference_document": "Ren Settings"
+}

@@ -1,10 +1,11 @@
 import { memo, useCallback } from "react";
+import { modifierTexts } from "../modifierRules";
 import {
-  ShoppingCart, Send, Flame, CheckCircle, Check, Circle,
+  ShoppingCart, Send, Flame, CheckCircle, Check, Circle, PauseCircle,
 } from "lucide-react";
 import { flt, formatCurrency } from "./calculator";
 
-const STATUS_CONFIG = {
+export const STATUS_CONFIG = {
   Pending:    { icon: ShoppingCart, text: "text-amber-400",   bg: "bg-amber-500/10",  border: "border-amber-500/20" },
   Attending:  { icon: ShoppingCart, text: "text-amber-400",   bg: "bg-amber-500/10",  border: "border-amber-500/20" },
   Sent:       { icon: Send,        text: "text-blue-400",    bg: "bg-blue-500/10",   border: "border-blue-500/20" },
@@ -13,14 +14,16 @@ const STATUS_CONFIG = {
   Completed:  { icon: Check,       text: "text-muted-foreground", bg: "bg-muted/50",   border: "border-border" },
 };
 
-const DEFAULT_STATUS = { icon: Circle, text: "text-muted-foreground", bg: "bg-muted/50", border: "border-border" };
+export const DEFAULT_STATUS = { icon: Circle, text: "text-muted-foreground", bg: "bg-muted/50", border: "border-border" };
+// a line held for a later course (not sent yet)
+export const HELD_STATUS = { icon: PauseCircle, text: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/20" };
 
 export const OrderItemRow = memo(function OrderItemRow({
   item,
   selected,
   onClick,
 }) {
-  const config = STATUS_CONFIG[item.status] || DEFAULT_STATUS;
+  const config = item.ren_hold ? HELD_STATUS : (STATUS_CONFIG[item.status] || DEFAULT_STATUS);
   const StatusIcon = config.icon;
   const discount = flt(item.discount_percentage);
 
@@ -50,6 +53,9 @@ export const OrderItemRow = memo(function OrderItemRow({
         <div className="min-w-0">
           <div className="text-sm font-medium text-card-foreground truncate">
             {item.item_name}
+            {!!item.ren_hold && (
+              <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-orange-400">{__("Held")}</span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
             {item.qty} x @{formatCurrency(item.rate)}
@@ -59,6 +65,11 @@ export const OrderItemRow = memo(function OrderItemRow({
               </span>
             )}
           </div>
+          {modifierTexts(item.modifiers).length > 0 && (
+            <div className="text-[11px] text-blue-400/90 mt-0.5 leading-snug">
+              {modifierTexts(item.modifiers).join(" · ")}
+            </div>
+          )}
           {item.notes && (
             <div className="text-[11px] text-muted-foreground/60 mt-0.5 truncate italic">
               {item.notes}
@@ -90,6 +101,8 @@ export const OrderItemRow = memo(function OrderItemRow({
     a.amount === b.amount &&
     a.discount_percentage === b.discount_percentage &&
     a.status === b.status &&
-    a.notes === b.notes
+    a.ren_hold === b.ren_hold &&
+    a.notes === b.notes &&
+    a.modifiers === b.modifiers
   );
 });

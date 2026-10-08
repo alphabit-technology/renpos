@@ -1,0 +1,132 @@
+{
+ "name": "Ren Menu",
+ "module": "Ren POS",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "is_tree": 0,
+ "istable": 0,
+ "editable_grid": 1,
+ "track_changes": 1,
+ "naming_rule": "By fieldname",
+ "autoname": "field:menu_name",
+ "fields": [
+  {
+   "fieldname": "section_general",
+   "fieldtype": "Section Break",
+   "label": "General"
+  },
+  {
+   "fieldname": "menu_name",
+   "fieldtype": "Data",
+   "label": "Menu Name",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "description": "e.g. Main Menu, Lunch Menu, Happy Hour, Brunch"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "column_break_general",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled",
+   "default": "1"
+  },
+  {
+   "fieldname": "is_default",
+   "fieldtype": "Check",
+   "label": "Is Default",
+   "default": "0",
+   "description": "Default menu pre-selected when opening Menu Manager"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Menu Items",
+   "description": "Select items to include in this menu. Categories in the POS are auto-generated from each item's Item Group."
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Ren Menu Item"
+  },
+  {
+   "fieldname": "section_schedule",
+   "fieldtype": "Section Break",
+   "label": "Schedule",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "schedule",
+   "fieldtype": "Table",
+   "label": "In Force",
+   "options": "Ren Menu Schedule",
+   "description": "Optional. When set, this menu is used automatically at these times (e.g. Breakfast 7:00-11:00, Happy Hour 16:00-18:00), instead of the restaurant's menu. Rooms with their own menu keep it."
+  },
+  {
+   "fieldname": "section_summary",
+   "fieldtype": "Section Break",
+   "label": "Summary",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "total_items",
+   "fieldtype": "Int",
+   "label": "Total Items",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_summary",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "categories_html",
+   "fieldtype": "HTML",
+   "label": "Categories",
+   "options": "<p class='text-muted'>Save to see auto-detected categories</p>"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Restaurant Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "export": 1,
+   "import": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1
+  }
+ ],
+ "sort_field": "menu_name",
+ "sort_order": "ASC",
+ "title_field": "menu_name",
+ "show_title_field_in_link": 1,
+ "modified": "2026-10-01 05:00:00.000000"
+}

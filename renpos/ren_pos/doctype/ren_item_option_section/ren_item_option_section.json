@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "creation": "2026-10-03 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "editable_grid": 1,
+ "field_order": [
+  "section",
+  "option_list",
+  "min_select",
+  "max_select",
+  "free_choices",
+  "use_modes",
+  "price_by_size"
+ ],
+ "fields": [
+  {
+   "fieldname": "section",
+   "fieldtype": "Data",
+   "label": "Section",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "The name used in the options. Empty: the options without a section (Ingredients)."
+  },
+  {
+   "fieldname": "option_list",
+   "fieldtype": "Link",
+   "options": "Ren Option List",
+   "label": "Option List",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "Shared options (Sauces, Cooking point\u2026): offered in this section with the item's own"
+  },
+  {
+   "fieldname": "min_select",
+   "fieldtype": "Int",
+   "label": "Minimum choices",
+   "default": "0",
+   "non_negative": 1,
+   "in_list_view": 1,
+   "description": "0 = optional. 1 or more = the waiter must choose before adding the item",
+   "columns": 1,
+   "fetch_from": "option_list.min_select",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "max_select",
+   "fieldtype": "Int",
+   "label": "Maximum choices",
+   "default": "0",
+   "non_negative": 1,
+   "in_list_view": 1,
+   "description": "1 = pick one. 0 = no limit",
+   "columns": 1,
+   "fetch_from": "option_list.max_select",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "free_choices",
+   "fieldtype": "Int",
+   "label": "Free choices",
+   "default": "0",
+   "non_negative": 1,
+   "description": "The first N extras chosen don't add to the price (the cheapest ones), e.g. 2 free sauces",
+   "fetch_from": "option_list.free_choices",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "use_modes",
+   "fieldtype": "Check",
+   "label": "Ingredient modes",
+   "default": "0",
+   "description": "Each chosen option offers the restaurant's modes (Light, Extra, On the side\u2026)",
+   "fetch_from": "option_list.use_modes",
+   "fetch_if_empty": 1
+  },
+  {
+   "fieldname": "price_by_size",
+   "fieldtype": "Check",
+   "label": "Price by size",
+   "default": "0",
+   "description": "The prices of this section grow with the item's size: each size (variant) sets its Option price factor in its Restaurant tab (Large = 1.5)."
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-03 21:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Item Option Section",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1
+}

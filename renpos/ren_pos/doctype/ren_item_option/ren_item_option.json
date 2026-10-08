@@ -1,0 +1,131 @@
+{
+ "actions": [],
+ "creation": "2026-10-03 09:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "editable_grid": 1,
+ "field_order": [
+  "section",
+  "role",
+  "item",
+  "label",
+  "column_break_price",
+  "price",
+  "changes_price",
+  "max_qty",
+  "qty",
+  "column_break_more",
+  "preselected",
+  "variant",
+  "unavailable"
+ ],
+ "fields": [
+  {
+   "fieldname": "section",
+   "fieldtype": "Data",
+   "label": "Section",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "Groups the options of an item: Ingredients, Side, Drink, Cooking\u2026 Its rules go in the Sections table. Not used in an Option List."
+  },
+  {
+   "fieldname": "role",
+   "fieldtype": "Select",
+   "label": "Role",
+   "options": "Included\nOptional",
+   "default": "Optional",
+   "in_list_view": 1,
+   "columns": 1,
+   "reqd": 1,
+   "description": "Included: part of the item, comes checked and can be removed (\"NO Tomato\"). Optional: can be added (or is the one chosen)."
+  },
+  {
+   "fieldname": "item",
+   "fieldtype": "Link",
+   "options": "Item",
+   "label": "Component",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "The item it is: an ingredient, a side, a drink, another dish. Empty: just an instruction for the kitchen (cooking point, no salt\u2026)."
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "label": "Label",
+   "in_list_view": 1,
+   "columns": 2,
+   "description": "Shown to the waiter and printed. Empty: the component's name."
+  },
+  {
+   "fieldname": "column_break_price",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "price",
+   "fieldtype": "Currency",
+   "label": "Price",
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "Optional: what it adds. Included: what it's worth (taken off when removed, if it changes the price; the whole price when the item is priced from components)."
+  },
+  {
+   "fieldname": "changes_price",
+   "fieldtype": "Check",
+   "label": "Changes the price",
+   "default": "1",
+   "description": "Off: choosing or removing it never changes the price."
+  },
+  {
+   "fieldname": "max_qty",
+   "fieldtype": "Int",
+   "label": "Up to",
+   "default": "1",
+   "non_negative": 1,
+   "in_list_view": 1,
+   "columns": 1,
+   "description": "How many times it can be chosen (Cheese x2)."
+  },
+  {
+   "fieldname": "qty",
+   "fieldtype": "Float",
+   "label": "Portion",
+   "default": "1",
+   "description": "How much of the component goes in one unit, in its stock unit (e.g. 30 g). When the component is a line of the item's recipe, the recipe's quantity is used."
+  },
+  {
+   "fieldname": "column_break_more",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "preselected",
+   "fieldtype": "Check",
+   "label": "Preselected",
+   "default": "0",
+   "description": "Optional options only: comes checked."
+  },
+  {
+   "fieldname": "variant",
+   "fieldtype": "Link",
+   "options": "Item",
+   "label": "Default variant",
+   "description": "When the component has variants (sizes\u2026): the one included. Bigger ones charge the difference. Empty: the cheapest."
+  },
+  {
+   "fieldname": "unavailable",
+   "fieldtype": "Check",
+   "label": "Unavailable",
+   "default": "0",
+   "description": "Not offered for now (86)."
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-03 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Item Option",
+ "owner": "Administrator",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "istable": 1
+}

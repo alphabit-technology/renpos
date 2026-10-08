@@ -1,0 +1,91 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ _("Staff Login") }}{% endblock %}
+
+{% block page_content %}
+<style>
+  .pl { max-width: 340px; margin: 3rem auto; text-align: center; }
+  .pl h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: .25rem; }
+  .pl .sub { color: var(--text-muted); margin-bottom: 1.5rem; }
+  .pl .dots { display: flex; justify-content: center; gap: .6rem; height: 18px; margin-bottom: 1.25rem; }
+  .pl .dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text-muted); }
+  .pl .dots span.on { background: var(--text-color); border-color: var(--text-color); }
+  .pl .pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; }
+  .pl .pad button { height: 64px; border-radius: 16px; border: 1px solid var(--border-color); background: transparent;
+                    font-size: 1.5rem; font-weight: 600; color: inherit; }
+  .pl .pad button:active { background: var(--control-bg); }
+  .pl .go { background: #111 !important; color: #fff !important; font-size: 1rem !important; }
+  .pl .err { color: #dc2626; min-height: 1.5rem; margin-top: 1rem; font-size: 14px; }
+  .pl .staff { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+  .pl .staff button { padding: 1rem .5rem; border-radius: 14px; border: 1px solid var(--border-color);
+                      background: transparent; color: inherit; font-weight: 600; }
+</style>
+<div class="pl">
+  <h1>{{ _("Staff Login") }}</h1>
+  <p class="sub" id="pl-term">&nbsp;</p>
+  <div id="pl-who" style="display:none">
+    <div class="staff" id="pl-staff"></div>
+  </div>
+  <div id="pl-ready" style="display:none">
+    <p class="sub"><b id="pl-name"></b> · <a href="#" id="pl-back">{{ _("not you?") }}</a></p>
+    <div class="dots" id="pl-dots"></div>
+    <div class="pad" id="pl-pad">
+      {% for n in [1,2,3,4,5,6,7,8,9] %}<button type="button" data-k="{{ n }}">{{ n }}</button>{% endfor %}
+      <button type="button" data-k="del">⌫</button>
+      <button type="button" data-k="0">0</button>
+      <button type="button" data-k="go" class="go">{{ _("Enter") }}</button>
+    </div>
+    <p class="err" id="pl-err"></p>
+  </div>
+  <div id="pl-no" style="display:none">
+    <p class="sub">{{ _("This device isn't a registered terminal, or PIN login is off.") }}</p>
+    <a class="btn btn-primary" href="/login">{{ _("Log in with password") }}</a>
+  </div>
+</div>
+<script>
+frappe.ready(() => {
+  const $ = (id) => document.getElementById(id);
+  let token = null, pin = "", user = null;
+  try { token = localStorage.getItem("ren_terminal_token"); } catch (e) {}
+  const esc = (t) => frappe.utils ? frappe.utils.escape_html(t) : String(t).replace(/[&<>"']/g, "");
+  const dots = () => { $("pl-dots").innerHTML = Array.from({ length: Math.max(4, pin.length) }, (_, i) => `<span class="${i < pin.length ? "on" : ""}"></span>`).join(""); };
+  const pick = (u, name) => { user = u; pin = ""; $("pl-name").textContent = name; $("pl-who").style.display = "none"; $("pl-ready").style.display = ""; dots(); };
+  const who = () => { user = null; $("pl-ready").style.display = "none"; $("pl-who").style.display = ""; };
+  const show = (info) => {
+    if (!info?.valid) { $("pl-no").style.display = ""; return; }
+    $("pl-term").textContent = info.terminal_name;
+    $("pl-staff").innerHTML = (info.staff || []).map((s) => `<button type="button" data-u="${esc(s.user)}">${esc(s.name)}</button>`).join("")
+      || `<p class="sub">${__("Nobody here has a PIN yet.")}</p>`;
+    who();
+  };
+  $("pl-staff").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) pick(b.dataset.u, b.textContent); });
+  $("pl-back").addEventListener("click", (e) => { e.preventDefault(); who(); });
+  if (!token) return show(null);
+  frappe.call({ method: "renpos.api.staff.terminal_info", args: { token },
+    callback: (r) => show(r.message), error: () => show(null) });
+
+  const submit = () => {
+    if (pin.length < 4) return;
+    $("pl-err").textContent = "";
+    frappe.call({
+      method: "renpos.api.staff.pin_login", type: "POST", args: { user, pin, token },
+      callback: () => { window.location.href = "/app/ren-pos"; },
+      error: () => { pin = ""; dots(); $("pl-err").textContent = __("Wrong PIN"); },
+    });
+  };
+  $("pl-pad").addEventListener("click", (e) => {
+    const k = e.target.closest("button")?.dataset.k; if (!k) return;
+    if (k === "del") pin = pin.slice(0, -1);
+    else if (k === "go") return submit();
+    else if (pin.length < 8) pin += k;
+    dots();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (!user) return;
+    if (/^\d$/.test(e.key) && pin.length < 8) { pin += e.key; dots(); }
+    else if (e.key === "Backspace") { pin = pin.slice(0, -1); dots(); }
+    else if (e.key === "Enter") submit();
+  });
+});
+</script>
+{% endblock %}

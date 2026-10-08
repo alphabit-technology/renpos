@@ -4,13 +4,13 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
 	install_requires = f.read().strip().split('\n')
 
-# get version from __version__ variable in restaurant_management/__init__.py
-from restaurant_management import __version__ as version
+# get version from __version__ variable in renpos/__init__.py
+from renpos import __version__ as version
 
 setup(
-	name='restaurant_management',
+	name='renpos',
 	version=version,
-	description='Restaurant',
+	description='Ren POS: restaurant point of sale for ERPNext',
 	author='AlphaBit Technology',
 	author_email='qubitcore.io@gmail.com',
 	packages=find_packages(),

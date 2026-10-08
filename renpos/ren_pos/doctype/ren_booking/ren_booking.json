@@ -1,0 +1,408 @@
+{
+ "actions": [],
+ "autoname": "RES-BOOK-.YYYY.-.#####",
+ "creation": "2026-02-19 07:35:26.712805",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "restaurant",
+  "pos_profile",
+  "column_break_company",
+  "status",
+  "quoted_wait",
+  "notified_at",
+  "source",
+  "section_guest",
+  "customer",
+  "customer_name",
+  "guest_name",
+  "column_break_guest",
+  "contact_number",
+  "email",
+  "party_size",
+  "section_reservation",
+  "reservation_date",
+  "reservation_time",
+  "column_break_reservation",
+  "duration",
+  "reservation_end_time",
+  "starts_at",
+  "ends_at",
+  "section_table",
+  "table",
+  "extra_tables",
+  "column_break_table",
+  "room",
+  "floor",
+  "table_order",
+  "section_notes",
+  "notes",
+  "column_break_notes",
+  "internal_notes",
+  "section_tracking",
+  "seated_time",
+  "completed_time",
+  "column_break_tracking",
+  "cancelled_by",
+  "cancellation_reason",
+  "reminded",
+  "confirmation_sent",
+  "section_amended",
+  "amended_from",
+  "reschedule_count",
+  "color",
+  "keep_until_seated"
+ ],
+ "fields": [
+  {
+   "default": "{defaults.company}",
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "restaurant",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Restaurant",
+   "options": "Ren Restaurant",
+   "read_only": 0
+  },
+  {
+   "fieldname": "pos_profile",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "POS Profile",
+   "options": "POS Profile"
+  },
+  {
+   "fieldname": "column_break_company",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Status",
+   "options": "Open\nConfirmed\nWaitlisted\nSeated\nCompleted\nNo Show\nCancelled",
+   "search_index": 1
+  },
+  {
+   "default": "Phone",
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "Source",
+   "options": "\nPhone\nWalk-in\nOnline\nApp"
+  },
+  {
+   "fieldname": "section_guest",
+   "fieldtype": "Section Break",
+   "label": "Guest Information"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_standard_filter": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Customer Name",
+   "read_only_depends_on": "eval:doc.customer"
+  },
+  {
+   "description": "For walk-in guests without a Customer record",
+   "fieldname": "guest_name",
+   "fieldtype": "Data",
+   "label": "Guest Name"
+  },
+  {
+   "fieldname": "column_break_guest",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "contact_number",
+   "fieldtype": "Data",
+   "label": "Contact Number",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "default": "2",
+   "fieldname": "party_size",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Party Size",
+   "non_negative": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_reservation",
+   "fieldtype": "Section Break",
+   "label": "Reservation Details"
+  },
+  {
+   "default": "Today",
+   "fieldname": "reservation_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Reservation Date",
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "reservation_time",
+   "fieldtype": "Time",
+   "in_list_view": 1,
+   "label": "Reservation Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_reservation",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Minutes. Empty: from the restaurant's table times by party size.",
+   "fieldname": "duration",
+   "fieldtype": "Int",
+   "label": "Duration (minutes)",
+   "non_negative": 1
+  },
+  {
+   "description": "Auto-computed from time + duration",
+   "fieldname": "reservation_end_time",
+   "fieldtype": "Time",
+   "label": "Reservation End Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_table",
+   "fieldtype": "Section Break",
+   "label": "Table Assignment"
+  },
+  {
+   "fieldname": "table",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Table",
+   "options": "Ren Table"
+  },
+  {
+   "fieldname": "column_break_table",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "table.room",
+   "fieldname": "room",
+   "fieldtype": "Link",
+   "label": "Room",
+   "options": "Ren Room",
+   "read_only": 0
+  },
+  {
+   "fieldname": "floor",
+   "fieldtype": "Link",
+   "label": "Floor",
+   "options": "Ren Floor",
+   "read_only": 0
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_notes",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "description": "Special requests, allergies, preferences",
+   "fieldname": "notes",
+   "fieldtype": "Small Text",
+   "label": "Guest Notes"
+  },
+  {
+   "fieldname": "column_break_notes",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Staff-only notes (not visible to guest)",
+   "fieldname": "internal_notes",
+   "fieldtype": "Small Text",
+   "label": "Internal Notes"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:!doc.seated_time",
+   "fieldname": "section_tracking",
+   "fieldtype": "Section Break",
+   "label": "Tracking"
+  },
+  {
+   "description": "When guest was actually seated",
+   "fieldname": "seated_time",
+   "fieldtype": "Datetime",
+   "label": "Seated Time",
+   "read_only": 1
+  },
+  {
+   "description": "When guest finished and left",
+   "fieldname": "completed_time",
+   "fieldtype": "Datetime",
+   "label": "Completed Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_tracking",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.status=='Cancelled'",
+   "fieldname": "cancelled_by",
+   "fieldtype": "Data",
+   "label": "Cancelled By",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.status=='Cancelled'",
+   "fieldname": "cancellation_reason",
+   "fieldtype": "Small Text",
+   "label": "Cancellation Reason"
+  },
+  {
+   "default": "0",
+   "fieldname": "reminded",
+   "fieldtype": "Check",
+   "label": "Reminder Sent",
+   "read_only": 1
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "eval:doc.amended_from",
+   "fieldname": "section_amended",
+   "fieldtype": "Section Break",
+   "label": "Amendment"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "options": "Ren Booking",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "reschedule_count",
+   "fieldtype": "Int",
+   "label": "Reschedule Count",
+   "read_only": 1
+  },
+  {
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "hidden": 1,
+   "label": "Calendar Color"
+  },
+  {
+   "fieldname": "starts_at",
+   "fieldtype": "Datetime",
+   "label": "Starts At",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "ends_at",
+   "fieldtype": "Datetime",
+   "label": "Ends At",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "extra_tables",
+   "fieldtype": "Table MultiSelect",
+   "label": "Combined With",
+   "options": "Ren Booking Table",
+   "description": "Other tables joined for this party"
+  },
+  {
+   "fieldname": "table_order",
+   "fieldtype": "Link",
+   "label": "Order",
+   "options": "Ren Order",
+   "read_only": 1
+  },
+  {
+   "fieldname": "quoted_wait",
+   "fieldtype": "Int",
+   "label": "Quoted Wait (min)",
+   "depends_on": "eval:doc.status=='Waitlisted'"
+  },
+  {
+   "fieldname": "notified_at",
+   "fieldtype": "Datetime",
+   "label": "Table Ready Sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "confirmation_sent",
+   "fieldtype": "Check",
+   "label": "Confirmation Sent",
+   "read_only": 1
+  },
+  {
+   "fieldname": "keep_until_seated",
+   "fieldtype": "Check",
+   "label": "Brought Back (no auto No Show)",
+   "read_only": 1,
+   "hidden": 1
+  }
+ ],
+ "links": [
+  {
+   "link_doctype": "Ren Table",
+   "link_fieldname": "name"
+  }
+ ],
+ "modified": "2026-10-01 22:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Booking",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Restaurant Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Restaurant User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "search_fields": "customer_name,guest_name,contact_number,table",
+ "sort_field": "reservation_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "customer_name",
+ "track_changes": 1
+}

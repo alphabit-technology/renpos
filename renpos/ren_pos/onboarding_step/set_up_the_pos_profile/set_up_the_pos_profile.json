@@ -1,0 +1,21 @@
+{
+ "action": "Create Entry",
+ "action_label": "Set Up POS Profile",
+ "creation": "2026-09-29 21:00:00.000000",
+ "description": "The POS Profile connects the restaurant with ERPNext: price list, warehouse, taxes and payment methods.\n\n- Pick the **Restaurant**.\n- Add every waiter and cashier under **Applicable for Users**.\n- In the **Restaurant** tab: tips account, suggested tips and printers.",
+ "docstatus": 0,
+ "doctype": "Onboarding Step",
+ "idx": 1,
+ "is_complete": 0,
+ "is_single": 0,
+ "is_skipped": 0,
+ "modified": "2026-10-05 12:00:00.000000",
+ "modified_by": "Administrator",
+ "name": "Set Up the POS Profile",
+ "owner": "Administrator",
+ "show_form_tour": 0,
+ "show_full_form": 1,
+ "title": "Set Up the POS Profile",
+ "validate_action": 0,
+ "reference_document": "POS Profile"
+}

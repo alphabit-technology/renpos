@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 
 export function useFrappeRealtime(event, callback, deps = []) {
   const callbackRef = useRef(callback);
@@ -17,13 +17,4 @@ export function useFrappeRealtime(event, callback, deps = []) {
       frappe.realtime.off(event, handler);
     };
   }, [event, ...deps]);
-}
-
-export function useRealtimeEmit() {
-  return useCallback((method, args = {}) => {
-    return frappe.call({
-      method: `restaurant_management.api.${method}`,
-      args
-    });
-  }, []);
 }

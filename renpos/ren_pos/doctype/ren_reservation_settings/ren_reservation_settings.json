@@ -1,0 +1,278 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 03:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "istable": 0,
+ "editable_grid": 1,
+ "field_order": [
+  "restaurant",
+  "enabled",
+  "column_break_main",
+  "max_party_size",
+  "min_advance_minutes",
+  "max_advance_days",
+  "section_times",
+  "default_duration",
+  "turn_times",
+  "section_arrival",
+  "late_grace_minutes",
+  "no_show_after_minutes",
+  "column_break_arrival",
+  "reserved_before_minutes",
+  "section_pacing",
+  "slot_minutes",
+  "max_covers_per_slot",
+  "column_break_pacing",
+  "opening_hours",
+  "section_messages",
+  "send_confirmation",
+  "confirmation_template",
+  "send_reminder",
+  "reminder_hours_before",
+  "reminder_template",
+  "column_break_messages",
+  "sms_enabled",
+  "waitlist_sms_message",
+  "section_online",
+  "online_enabled",
+  "online_max_party",
+  "column_break_online",
+  "online_note"
+ ],
+ "fields": [
+  {
+   "fieldname": "restaurant",
+   "fieldtype": "Link",
+   "label": "Restaurant",
+   "options": "Ren Restaurant",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Take Reservations",
+   "default": "1"
+  },
+  {
+   "fieldname": "column_break_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "max_party_size",
+   "fieldtype": "Int",
+   "label": "Largest Party",
+   "default": "12",
+   "description": "Larger parties must be arranged by a manager. 0 = no limit."
+  },
+  {
+   "fieldname": "min_advance_minutes",
+   "fieldtype": "Int",
+   "label": "Minimum Notice (min)",
+   "default": "0"
+  },
+  {
+   "fieldname": "max_advance_days",
+   "fieldtype": "Int",
+   "label": "Book Up To (days ahead)",
+   "default": "60"
+  },
+  {
+   "fieldname": "section_times",
+   "fieldtype": "Section Break",
+   "label": "Table Times"
+  },
+  {
+   "fieldname": "default_duration",
+   "fieldtype": "Int",
+   "label": "Default Table Time (min)",
+   "default": "90",
+   "reqd": 1
+  },
+  {
+   "fieldname": "turn_times",
+   "fieldtype": "Table",
+   "label": "Table Time by Party Size",
+   "options": "Ren Turn Time",
+   "description": "How long a party keeps the table, by size. Parties not covered use the default."
+  },
+  {
+   "fieldname": "section_arrival",
+   "fieldtype": "Section Break",
+   "label": "Arrival"
+  },
+  {
+   "fieldname": "late_grace_minutes",
+   "fieldtype": "Int",
+   "label": "Late Arrival Grace (min)",
+   "default": "15",
+   "description": "After this, the reservation shows as late on the host screen."
+  },
+  {
+   "fieldname": "no_show_after_minutes",
+   "fieldtype": "Int",
+   "label": "No Show After (min)",
+   "default": "30",
+   "description": "Unseated reservations become No Show this long after their time. 0 = never automatically."
+  },
+  {
+   "fieldname": "column_break_arrival",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "reserved_before_minutes",
+   "fieldtype": "Int",
+   "label": "Hold Table Before (min)",
+   "default": "60",
+   "description": "The table shows as Reserved on the floor plan from this long before the reservation."
+  },
+  {
+   "fieldname": "section_pacing",
+   "fieldtype": "Section Break",
+   "label": "Slots & Pacing"
+  },
+  {
+   "fieldname": "slot_minutes",
+   "fieldtype": "Int",
+   "label": "Slot Every (min)",
+   "default": "15",
+   "reqd": 1
+  },
+  {
+   "fieldname": "max_covers_per_slot",
+   "fieldtype": "Int",
+   "label": "Max Guests per Slot",
+   "default": "0",
+   "description": "Guests that can arrive in the same slot (kitchen pacing). 0 = no limit."
+  },
+  {
+   "fieldname": "column_break_pacing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "opening_hours",
+   "fieldtype": "Table",
+   "label": "Reservation Hours",
+   "options": "Ren Opening Hour",
+   "description": "Leave empty to accept any time."
+  },
+  {
+   "fieldname": "section_messages",
+   "fieldtype": "Section Break",
+   "label": "Guest Messages"
+  },
+  {
+   "fieldname": "send_confirmation",
+   "fieldtype": "Check",
+   "label": "Email Confirmation"
+  },
+  {
+   "fieldname": "confirmation_template",
+   "fieldtype": "Link",
+   "label": "Confirmation Template",
+   "options": "Email Template",
+   "depends_on": "send_confirmation"
+  },
+  {
+   "fieldname": "send_reminder",
+   "fieldtype": "Check",
+   "label": "Email Reminder"
+  },
+  {
+   "fieldname": "reminder_hours_before",
+   "fieldtype": "Int",
+   "label": "Reminder Hours Before",
+   "default": "3",
+   "depends_on": "send_reminder"
+  },
+  {
+   "fieldname": "reminder_template",
+   "fieldtype": "Link",
+   "label": "Reminder Template",
+   "options": "Email Template",
+   "depends_on": "send_reminder"
+  },
+  {
+   "fieldname": "column_break_messages",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sms_enabled",
+   "fieldtype": "Check",
+   "label": "Send SMS too",
+   "description": "Uses the SMS Settings of the site for confirmations, reminders and the waitlist."
+  },
+  {
+   "fieldname": "waitlist_sms_message",
+   "fieldtype": "Small Text",
+   "label": "Table Ready Message",
+   "default": "Hi {guest}, your table at {restaurant} is ready. Please come to the host stand."
+  },
+  {
+   "fieldname": "section_online",
+   "fieldtype": "Section Break",
+   "label": "Online Booking"
+  },
+  {
+   "fieldname": "online_enabled",
+   "fieldtype": "Check",
+   "label": "Accept Online Reservations",
+   "description": "Guests book on /reserve. A table that fits the party is assigned automatically."
+  },
+  {
+   "fieldname": "online_max_party",
+   "fieldtype": "Int",
+   "label": "Largest Party Online",
+   "default": "8",
+   "depends_on": "online_enabled"
+  },
+  {
+   "fieldname": "column_break_online",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "online_note",
+   "fieldtype": "Small Text",
+   "label": "Note for Guests",
+   "depends_on": "online_enabled",
+   "description": "Shown on the booking page, e.g. cancellation policy or parking"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-01 05:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Reservation Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "role": "Restaurant Manager",
+   "report": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "role": "System Manager",
+   "report": 1
+  },
+  {
+   "read": 1,
+   "role": "Restaurant User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "row_format": "Dynamic",
+ "autoname": "field:restaurant",
+ "naming_rule": "By fieldname",
+ "title_field": "restaurant"
+}

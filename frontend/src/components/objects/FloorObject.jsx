@@ -1,19 +1,13 @@
 import { Rnd } from 'react-rnd'
 import { useRestaurant } from '../../context/RestaurantContext.jsx'
 import { useState, useEffect, useCallback } from 'react'
-import { Settings, Trash2, Square, Circle, User, Users, Utensils } from 'lucide-react'
 import { debounce } from 'es-toolkit'
-import { ActionButton } from '@c/ui/ActionButton.jsx'
-
-
-import { useFrappeRealtime } from '../../hooks/useFrappeRealtime.js'
 
 export function FloorObject({ 
   actions,
   data: initialData, 
   doctype,
   onSelect, 
-  onDelete,
   defaultColor = '#22c55e',
   renderBadges,
   renderOverlay,
@@ -24,7 +18,6 @@ export function FloorObject({
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [size, setSize] = useState({ width: 100, height: 100 })
   const [isDragging, setIsDragging] = useState(false)
-  const [editObject, setEditObject] = useState(false)
 
   useEffect(() => {
     setData(initialData)
@@ -34,30 +27,11 @@ export function FloorObject({
   const isRound = data.shape === 'Round'
   const bgColor = data.color || defaultColor
 
-  /* useFrappeRealtime(data.name, (msg) => {
-    if (msg.action === "Notifications") return
-    switch (msg.action) {
-      case 'Update':
-        const data = msg.data;
-        console.log(["data", data])
-        if(data.room){
-
-        }else{
-
-        }
-        //setData(prev => ({ ...prev, ...msg.data }))
-        break
-      case 'Delete':
-        onDelete?.(data.name)
-        break
-    }
-  }, [data.name]) */
-
   useEffect(() => {
     let style = {}
     try {
       style = data.data_style ? JSON.parse(data.data_style) : {}
-    } catch (e) {}
+    } catch { /* bad style JSON: defaults */ }
     setPosition({ x: style.x || 0, y: style.y || 0 })
     setSize({ width: style.width || 100, height: style.height || 100 })
   }, [data.data_style])
@@ -94,10 +68,6 @@ export function FloorObject({
     const newShape = data.shape === 'Round' ? 'Square' : 'Round'
     setData(prev => ({ ...prev, shape: newShape }))
     updateAttr("shape", newShape)
-  }
-
-  const handleObjectDelete = () => {
-    callMethod(doctype, initialData.name, "delete")
   }
 
   return (

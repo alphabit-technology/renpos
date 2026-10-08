@@ -10,7 +10,7 @@
  *
  * Pattern: React.createContext + useSyncExternalStore
  */
-import { createContext, useContext, useRef, useCallback, useMemo } from 'react';
+import { createContext, useContext, useRef, useCallback } from 'react';
 import { useSyncExternalStore } from 'react';
 
 // ─── Store class ─────────────────────────────────

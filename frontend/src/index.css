@@ -104,3 +104,27 @@
 .restaurant-app.visible {
   opacity: 1;
 }
+/* Item groups as a side column on large screens (order screen). Plain CSS on
+   purpose: the desk's own .hidden / .flex classes (unlayered, some !important)
+   beat Tailwind's layered display utilities. */
+.ren-side-groups { display: none !important; }
+@media (min-width: 1024px) {
+  .ren-side-groups { display: flex !important; }
+  .ren-top-groups { display: none !important; }
+}
+
+/* The desk styles every <button> with an unlayered "border-radius: 0", which
+   beats Tailwind's (layered) rounded-* utilities: inside the app, let the
+   utilities decide again. */
+.restaurant-app button,
+.ren-portal button {
+  border-radius: revert-layer;
+}
+
+/* Bootstrap's "label { display: inline-block; margin-bottom: .5rem }" (unlayered)
+   beats the app's block / flex labels: let Tailwind decide inside the app. */
+.restaurant-app label,
+.ren-portal label {
+  display: revert-layer;
+  margin-bottom: revert-layer;
+}

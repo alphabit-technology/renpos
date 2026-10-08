@@ -1,0 +1,258 @@
+{
+ "actions": [],
+ "creation": "2026-10-01 21:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "istable": 0,
+ "editable_grid": 1,
+ "field_order": [
+  "role_name",
+  "description",
+  "section_tables",
+  "all_tables",
+  "view_others_orders",
+  "operate_others_orders",
+  "column_break_tables",
+  "transfer_orders",
+  "divide_orders",
+  "section_money",
+  "max_discount",
+  "change_price",
+  "column_break_money",
+  "void_sent_items",
+  "void_orders",
+  "section_cash",
+  "take_payments",
+  "manage_register",
+  "column_break_cash",
+  "open_drawer",
+  "reprint",
+  "section_ops",
+  "mark_sold_out",
+  "manage_reservations",
+  "delivers_orders",
+  "all_stations",
+  "column_break_ops",
+  "edit_floor",
+  "edit_menu",
+  "section_approve",
+  "can_approve"
+ ],
+ "fields": [
+  {
+   "fieldname": "role_name",
+   "fieldtype": "Data",
+   "label": "Role",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_tables",
+   "fieldtype": "Section Break",
+   "label": "Tables & Orders"
+  },
+  {
+   "fieldname": "all_tables",
+   "fieldtype": "Check",
+   "label": "Every table of the restaurant",
+   "default": "0",
+   "description": "Every table when no floor, room or table is assigned to the person; when some are, only those"
+  },
+  {
+   "fieldname": "view_others_orders",
+   "fieldtype": "Check",
+   "label": "See other people's orders",
+   "default": "1"
+  },
+  {
+   "fieldname": "operate_others_orders",
+   "fieldtype": "Check",
+   "label": "Work on other people's orders",
+   "default": "0",
+   "description": "Add items, send, split or charge orders someone else opened"
+  },
+  {
+   "fieldname": "column_break_tables",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "transfer_orders",
+   "fieldtype": "Check",
+   "label": "Transfer orders to another table",
+   "default": "1"
+  },
+  {
+   "fieldname": "divide_orders",
+   "fieldtype": "Check",
+   "label": "Split orders",
+   "default": "1"
+  },
+  {
+   "fieldname": "section_money",
+   "fieldtype": "Section Break",
+   "label": "Prices & Discounts"
+  },
+  {
+   "fieldname": "max_discount",
+   "fieldtype": "Percent",
+   "label": "Max Discount %",
+   "default": "0",
+   "description": "Discounts above this need a manager PIN. 100 = any discount"
+  },
+  {
+   "fieldname": "change_price",
+   "fieldtype": "Check",
+   "label": "Change prices",
+   "default": "0"
+  },
+  {
+   "fieldname": "column_break_money",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "void_sent_items",
+   "fieldtype": "Check",
+   "label": "Void items sent to the kitchen",
+   "default": "0"
+  },
+  {
+   "fieldname": "void_orders",
+   "fieldtype": "Check",
+   "label": "Void whole orders",
+   "default": "0"
+  },
+  {
+   "fieldname": "section_cash",
+   "fieldtype": "Section Break",
+   "label": "Payments & Cash"
+  },
+  {
+   "fieldname": "take_payments",
+   "fieldtype": "Check",
+   "label": "Charge orders",
+   "default": "1",
+   "description": "Also needs the ERPNext cashier roles (Accounts User + Sales Manager)"
+  },
+  {
+   "fieldname": "manage_register",
+   "fieldtype": "Check",
+   "label": "Open and close the cash register",
+   "default": "1"
+  },
+  {
+   "fieldname": "column_break_cash",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "open_drawer",
+   "fieldtype": "Check",
+   "label": "Open the cash drawer (no sale)",
+   "default": "0"
+  },
+  {
+   "fieldname": "reprint",
+   "fieldtype": "Check",
+   "label": "Reprint tickets and receipts",
+   "default": "1"
+  },
+  {
+   "fieldname": "section_ops",
+   "fieldtype": "Section Break",
+   "label": "Operations"
+  },
+  {
+   "fieldname": "mark_sold_out",
+   "fieldtype": "Check",
+   "label": "Mark items sold out (86)",
+   "default": "1"
+  },
+  {
+   "fieldname": "manage_reservations",
+   "fieldtype": "Check",
+   "label": "Manage reservations and waitlist",
+   "default": "1"
+  },
+  {
+   "fieldname": "delivers_orders",
+   "fieldtype": "Check",
+   "label": "Delivers orders (driver)",
+   "default": "0"
+  },
+  {
+   "fieldname": "all_stations",
+   "fieldtype": "Check",
+   "label": "Every production center",
+   "default": "0",
+   "description": "Without it, only the production centers assigned to the person in Ren Staff"
+  },
+  {
+   "fieldname": "column_break_ops",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "edit_floor",
+   "fieldtype": "Check",
+   "label": "Edit the floor plan",
+   "default": "0"
+  },
+  {
+   "fieldname": "edit_menu",
+   "fieldtype": "Check",
+   "label": "Edit menus",
+   "default": "0"
+  },
+  {
+   "fieldname": "section_approve",
+   "fieldtype": "Section Break",
+   "label": "Approvals"
+  },
+  {
+   "fieldname": "can_approve",
+   "fieldtype": "Check",
+   "label": "Approve with PIN",
+   "default": "0",
+   "description": "This person's PIN approves the actions their role allows, for anyone at the terminal"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-06 20:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Ren POS",
+ "name": "Ren Role",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "role": "Restaurant Manager"
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "write": 1,
+   "report": 1,
+   "role": "System Manager"
+  },
+  {
+   "read": 1,
+   "role": "Restaurant User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "row_format": "Dynamic",
+ "autoname": "field:role_name",
+ "naming_rule": "By fieldname",
+ "title_field": "role_name"
+}

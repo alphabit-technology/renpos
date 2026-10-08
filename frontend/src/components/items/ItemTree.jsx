@@ -33,7 +33,9 @@ const ItemTree = memo(function ItemTree({
   renderAction,
   showOrderQty = true,
   priceList = null,
+  restaurant = null, // sold-out events of other restaurants are ignored
   className = "",
+  sideGroups = false, // on lg screens the groups go in a column on the left
 }) {
   const {
     activeTab,
@@ -52,7 +54,7 @@ const ItemTree = memo(function ItemTree({
     loadingItems,
     hasMore,
     loadMore,
-  } = useItemTree({ enabled, menuName, priceList });
+  } = useItemTree({ enabled, menuName, priceList, restaurant, menuMode });
 
   const [viewMode, setViewMode] = useState(defaultViewMode);
   const scrollRef = useRef(null);
@@ -109,13 +111,25 @@ const ItemTree = memo(function ItemTree({
           tabs={parentTabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          className={sideGroups && parentTabs.length > 1 ? "ren-top-groups" : ""}
         />
       </div>
+
+      <div className="flex-1 min-h-0 flex">
+      {sideGroups && parentTabs.length > 1 && (
+        <ItemGroupTabs
+          vertical
+          tabs={parentTabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          className="ren-side-groups w-36 xl:w-44 2xl:w-48 shrink-0 border-r border-border bg-muted/10"
+        />
+      )}
 
       {/* ── Scrollable content ── */}
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-3"
+        className="flex-1 min-w-0 min-h-0 overflow-y-auto overscroll-contain px-3 py-3"
       >
         {loading && filteredItems.length === 0 ? (
           <div className="flex items-center justify-center h-48 text-muted-foreground">
@@ -158,6 +172,7 @@ const ItemTree = memo(function ItemTree({
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

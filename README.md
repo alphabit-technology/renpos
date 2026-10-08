@@ -1,78 +1,72 @@
-<div align="center">
-    <img src="https://frappecloud.com/files/pos-restaurant.webp" height="128">
-    <h2>POS Restaurant</h2>
-    <p><strong>Restaurant Management System for ERPNext</strong></p>
-    <p>Version 1.8.6</p>
-</div>
+# Ren POS
 
----
+Restaurant point of sale for ERPNext v16: floor plan, orders, kitchen and
+dispatch stations, delivery and online ordering, all charged through ERPNext
+POS invoices.
 
-## ✨ What's New in v1.8.6
+## Features
 
-- **Frappe Helper Integrated** - No longer requires separate installation
-- **Table Reservations** - Reserve and lock tables for specific customers
-- **Menu Management** - Create menus; POS items are pulled from your configured menu
-- **Branch Delivery** - Assign delivery orders to specific branches
-- **Veg/Non-Veg Filter** - Quick dietary filtering for items
-- **Recipe (BOM) Support** - Define ingredients per dish for inventory control and costing
-- **Mobile Tabs View** - Tab navigation (Options, Orders, Items, Cart) for table management
+- **Floor plan**: floors, rooms and tables drawn on screen; the POS opens on
+  the table and shows who serves it.
+- **Orders**: items from the restaurant's menu, options and combos (sizes,
+  sections, components sent to their own stations), hold and fire, split and
+  move, guest notes, voids with a reason.
+- **Ren Stations** (kitchen display): each station follows its own flow of
+  statuses for its item groups, rooms or tables. A station can also wait for
+  the whole order (expo / dispatch) and ask who delivers it.
+- **Delivery**: zones by ZIP code that pick the branch, fee and minimum;
+  phone orders from the call center.
+- **Online ordering**: table QR and pickup / delivery pages for guests.
+- **Staff**: Ren Staff says who works at each restaurant, with which Ren Role
+  and on which floors, rooms, tables or stations. PIN login on shared
+  terminals.
+- **Charging**: the cashier's POS Profile (register opening, payment methods,
+  discounts, price list) is used for the invoice; tips, card payments,
+  loyalty points, receipts and the cash drawer.
+- **Recipes**: a BOM per dish; ingredients leave stock at the register close,
+  with a usage variance report.
+- **Reservations**.
 
----
+## Requirements
 
-## 🍳 Production Center System
+- Frappe / ERPNext v16
 
-The core of POS Restaurant is the **Production Center** (Kitchen Display System). Each production center reads orders in real-time based on order status.
-
-### Flexible Restrictions
-
-Administrators can configure each Production Center with three restriction levels:
-
-| Restriction | Example |
-|-------------|---------|
-| **By Parent Room** | Kitchen PC in Room 1 only sees orders from Room 1 |
-| **By Room List** | Bar PC sees orders from Terrace + Lounge rooms |
-| **By Table List** | VIP Kitchen sees only orders from tables 1, 2, 3 |
-
-### Product Group Filtering
-
-Production Centers can also filter by item groups:
-
-- **Bar PC** → Only cold drinks
-- **Coffee Station** → Only hot beverages  
-- **Main Kitchen** → Only food items
-
-This allows multiple production centers to read from the same rooms but handle different product types.
-
----
-
-## 🚀 Key Features
-
-- **Room & Table Management** - Dynamic restaurant areas with drag-and-drop
-- **Real-time Updates** - Instant sync across all stations
-- **Role-based Permissions** - Custom access per POS profile and room
-- **Order Process Tracking** - Status-based workflow (Pending → Preparing → Ready)
-- **Dark Theme Compatible**
-
----
-
-## 📋 Requirements
-
-- [ERPNext](https://github.com/frappe/erpnext) V13, V14, or V15
-
----
-
-## 🔧 Installation
+## Installation
 
 ```bash
-bench get-app https://github.com/alphabit-technology/erpnext-restaurant.git
-bench --site your-site.local install-app restaurant_management
-bench migrate
+bench get-app <repository url>
+bench --site your-site install-app renpos
 ```
 
----
+The POS is the **Ren POS** page (`/app/ren-pos`); setup is in the
+**Restaurant** workspace.
 
-## 📄 License
+### Sites that ran the old app (`restaurant_management`)
 
-GNU General Public License (v3) - see [license.txt](license.txt)
+```bash
+bench get-app <repository url>        # puts renpos in apps/
+# sites/apps.txt: replace restaurant_management with renpos
+bench --site your-site renpos-migrate-site
+bench --site your-site migrate
+```
 
----
+## Frontend
+
+The POS and the guest pages are React apps in `frontend/` (Vite + Tailwind).
+The build goes to `renpos/public/dist`:
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+## Tests
+
+```bash
+bench --site your-test-site run-tests --module renpos.tests.test_order_flow
+```
+
+## License
+
+GNU General Public License v3, see [license.txt](license.txt).

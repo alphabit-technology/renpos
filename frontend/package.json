@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "USE_PROXY=true vite",
-    "build": "vite build",
-    "deploy": "vite build",
+    "build": "vite build && vite build --mode guest",
+    "deploy": "vite build && vite build --mode guest",
     "lint": "eslint src"
   },
   "dependencies": {
@@ -36,6 +36,6 @@
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^17.12.0",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.3.1"
+    "vite": "^8.3.4"
   }
 }
